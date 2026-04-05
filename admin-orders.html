@@ -101,7 +101,7 @@
     .hero p {
       margin: 0;
       color: var(--muted);
-      max-width: 850px;
+      max-width: 860px;
       font-size: 1rem;
     }
 
@@ -295,6 +295,12 @@
       font-size: 0.92rem;
     }
 
+    .change-note {
+      margin-top: 16px;
+      color: #94a3b8;
+      font-size: 0.86rem;
+    }
+
     .site-footer {
       border-top: 1px solid rgba(255,255,255,0.08);
       padding: 22px 20px 28px;
@@ -362,7 +368,7 @@
     <section class="hero">
       <h1>Admin Orders</h1>
       <p>
-        Internal order workflow page for reviewing requests, sending follow-up, managing setup readiness, and moving customers through the service process. The Google Sheet remains the source of truth. This page is your faster daily operating screen.
+        Use this page to move orders faster from new request to payment, setup, completion, and follow-up. Open the sheet when you need to update the source of truth, but use this page to decide what to do next.
       </p>
     </section>
 
@@ -370,165 +376,169 @@
       <div class="summary-card">
         <div class="summary-label">New Requests</div>
         <div class="summary-value">0</div>
-        <div class="summary-note">New intake to review</div>
+        <div class="summary-note">Fresh intake waiting for review</div>
       </div>
 
       <div class="summary-card">
-        <div class="summary-label">Awaiting Contact</div>
+        <div class="summary-label">Needs First Response</div>
         <div class="summary-value">0</div>
-        <div class="summary-note">Needs first response</div>
+        <div class="summary-note">Needs quote, clarification, or reply</div>
       </div>
 
       <div class="summary-card">
         <div class="summary-label">Awaiting Payment</div>
         <div class="summary-value">0</div>
-        <div class="summary-note">Quote sent, payment pending</div>
+        <div class="summary-note">Ready to move once paid</div>
       </div>
 
       <div class="summary-card">
         <div class="summary-label">In Setup</div>
         <div class="summary-value">0</div>
-        <div class="summary-note">Currently being prepared</div>
+        <div class="summary-note">Paid work in progress</div>
       </div>
 
       <div class="summary-card">
-        <div class="summary-label">Completed</div>
+        <div class="summary-label">Ready to Close</div>
         <div class="summary-value">0</div>
-        <div class="summary-note">Finished orders</div>
+        <div class="summary-note">Finish, confirm, and close out</div>
       </div>
 
       <div class="summary-card">
         <div class="summary-label">Follow Up Needed</div>
         <div class="summary-value">0</div>
-        <div class="summary-note">Needs next action</div>
+        <div class="summary-note">Waiting, stalled, or needs a next move</div>
       </div>
     </section>
 
     <section class="section-block">
       <h2 class="section-title">Top Daily Actions</h2>
       <p class="section-copy">
-        Start here each day to review orders, send the next message, and prepare for setup.
+        Start here each day to review orders, send the next message, and move the customer toward payment, setup, or completion.
       </p>
       <div class="quick-actions">
         <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders Sheet</a>
         <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
+        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2007863184#gid=2007863184" target="_blank" rel="noopener noreferrer">Open Customer Records</a>
         <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Device Inventory</a>
         <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists Tab</a>
       </div>
     </section>
 
     <section class="section-block">
-      <h2 class="section-title">Order Workflow</h2>
+      <h2 class="section-title">Work Queues</h2>
       <p class="section-copy">
-        Use this flow to move each customer cleanly from intake to completion.
+        Work these buckets in order so every order has a clear next step and nothing sits without movement.
       </p>
       <div class="workflow-grid">
         <article class="workflow-card">
           <h3>New Requests</h3>
-          <p>Review new form submissions and confirm the customer details before taking action.</p>
+          <p>Review fresh submissions and decide the first move before the order starts drifting.</p>
           <ul class="workflow-list">
-            <li>Check name, contact details, and requested service type</li>
-            <li>Review device information or online-only needs</li>
-            <li>Confirm the next step before messaging the customer</li>
+            <li>Confirm order type and customer details</li>
+            <li>Confirm device path or online-only path</li>
+            <li>Set the first next action in Orders</li>
           </ul>
           <div class="card-actions">
             <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Review Orders</a>
+            <a class="btn btn-secondary" href="request-service.html">Open Request Form</a>
           </div>
         </article>
 
         <article class="workflow-card">
-          <h3>Awaiting Contact</h3>
-          <p>Send the first response, answer questions, and guide the customer toward the best next step.</p>
+          <h3>Needs First Response</h3>
+          <p>Handle first contact fast so the customer knows what happens next and you do not lose momentum.</p>
           <ul class="workflow-list">
-            <li>Choose the correct quote or follow-up template</li>
-            <li>Clarify device, service term, or install method if needed</li>
-            <li>Move the order to the next stage after contact</li>
+            <li>Send quote, clarification, or support response</li>
+            <li>Confirm plan, device, or setup method if needed</li>
+            <li>Move the order into the next real stage</li>
           </ul>
           <div class="card-actions">
             <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Templates</a>
+            <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders</a>
           </div>
         </article>
 
         <article class="workflow-card">
           <h3>Awaiting Payment</h3>
-          <p>Keep payment follow-up clear and timely so paid orders can move into setup quickly.</p>
+          <p>Push quote-ready orders toward payment so paid work can move into setup without delay.</p>
           <ul class="workflow-list">
-            <li>Send payment instructions using the correct message</li>
-            <li>Confirm the payment method and amount</li>
-            <li>Update the order once payment is received</li>
+            <li>Confirm amount and payment method</li>
+            <li>Send payment request using the correct template</li>
+            <li>Update payment status as soon as funds are confirmed</li>
           </ul>
           <div class="card-actions">
             <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Payment Templates</a>
+            <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders</a>
           </div>
         </article>
 
         <article class="workflow-card">
           <h3>In Setup</h3>
-          <p>Use backend tools to prepare the correct device or online service setup.</p>
+          <p>Work paid orders that now need credentials, device prep, shipping prep, or support routing.</p>
           <ul class="workflow-list">
-            <li>Confirm device type or online-only support path</li>
-            <li>Check inventory and supported options</li>
-            <li>Finish setup preparation before marking complete</li>
+            <li>Confirm fulfillment path for the order</li>
+            <li>Check inventory or online service details</li>
+            <li>Prepare the order for completion without delay</li>
           </ul>
           <div class="card-actions">
             <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Inventory</a>
-            <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists</a>
+            <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders</a>
           </div>
         </article>
 
         <article class="workflow-card">
-          <h3>Completed</h3>
-          <p>Close the order cleanly and make sure the customer has what they need after setup.</p>
+          <h3>Ready to Close</h3>
+          <p>Finish the order cleanly so the customer gets the right handoff and your records stay organized.</p>
           <ul class="workflow-list">
-            <li>Confirm the setup is finished</li>
-            <li>Confirm customer delivery or access details</li>
-            <li>Update the order status in the sheet</li>
+            <li>Mark the order complete in Orders</li>
+            <li>Send the right support destination if needed</li>
+            <li>Move finished customers into Customer Records</li>
           </ul>
           <div class="card-actions">
             <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Update Orders</a>
+            <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2007863184#gid=2007863184" target="_blank" rel="noopener noreferrer">Open Customer Records</a>
           </div>
         </article>
 
         <article class="workflow-card">
           <h3>Follow Up Needed</h3>
-          <p>Use this stage for unanswered messages, support follow-up, and future renewal reminders.</p>
+          <p>Catch stalled orders, unanswered customers, and anything that should not be left sitting.</p>
           <ul class="workflow-list">
-            <li>Check for customers waiting on a reply</li>
-            <li>Review support-related next steps</li>
-            <li>Track renewal and post-setup follow-up items</li>
+            <li>Check waiting on customer items</li>
+            <li>Handle support follow-up and unresolved issues</li>
+            <li>Leave every open order with a next action</li>
           </ul>
           <div class="card-actions">
-            <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Follow-Up Templates</a>
+            <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Follow-Up Templates</a>
+            <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders</a>
           </div>
         </article>
       </div>
     </section>
 
     <section class="section-block">
-      <h2 class="section-title">Daily Operating Checklist</h2>
+      <h2 class="section-title">Daily Focus</h2>
       <p class="section-copy">
-        Use this checklist to stay tight on daily order execution.
+        Keep the day tight by reviewing what matters first and closing the loop before you stop.
       </p>
       <div class="checklist-grid">
         <div class="checklist-card">
-          <h3>Order Review</h3>
+          <h3>Before Noon</h3>
           <ul>
-            <li>Check for new requests</li>
-            <li>Confirm which orders need first contact</li>
-            <li>Review unpaid orders that need follow-up</li>
-            <li>Check which customers are currently in setup</li>
-            <li>Update the sheet after each major action</li>
+            <li>Review new requests</li>
+            <li>Send first responses</li>
+            <li>Check unpaid orders that need movement</li>
+            <li>Identify setup work for today</li>
           </ul>
         </div>
 
         <div class="checklist-card">
-          <h3>Customer Progress</h3>
+          <h3>Before Close</h3>
           <ul>
-            <li>Send the correct quote or follow-up template</li>
-            <li>Confirm payment status before setup work begins</li>
-            <li>Confirm device readiness or online-only path</li>
-            <li>Check for customers needing support follow-up</li>
-            <li>Leave no order without a clear next step</li>
+            <li>Update order statuses in the sheet</li>
+            <li>Close completed orders cleanly</li>
+            <li>Move finished customers into records</li>
+            <li>Leave every open order with a clear next action</li>
           </ul>
         </div>
       </div>
@@ -542,12 +552,17 @@
       <div class="link-grid">
         <a class="link-tile" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">
           <span class="link-tile-title">Orders</span>
-          <span class="link-tile-copy">Open the main operating tab for intake, status, and follow-up.</span>
+          <span class="link-tile-copy">Open the main operating tab for intake, status, payment, and follow-up.</span>
         </a>
 
         <a class="link-tile" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">
           <span class="link-tile-title">Message Templates</span>
-          <span class="link-tile-copy">Open quote, payment, follow-up, and renewal messaging.</span>
+          <span class="link-tile-copy">Open quote, payment, setup, follow-up, and renewal messaging.</span>
+        </a>
+
+        <a class="link-tile" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2007863184#gid=2007863184" target="_blank" rel="noopener noreferrer">
+          <span class="link-tile-title">Customer Records</span>
+          <span class="link-tile-copy">Open active customer tracking for completed orders, renewals, and credential reference.</span>
         </a>
 
         <a class="link-tile" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">
@@ -562,7 +577,7 @@
 
         <a class="link-tile" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=91066834#gid=91066834" target="_blank" rel="noopener noreferrer">
           <span class="link-tile-title">Settings</span>
-          <span class="link-tile-copy">Open system settings that support the workflow.</span>
+          <span class="link-tile-copy">Open system defaults and route references that support the workflow.</span>
         </a>
 
         <a class="link-tile" href="admin-dashboard.html">
@@ -573,21 +588,24 @@
     </section>
 
     <section class="section-block">
-      <h2 class="section-title">Public Page Verification</h2>
+      <h2 class="section-title">Customer Flow Check</h2>
       <p class="section-copy">
-        Use these links to verify the public customer flow while working active orders.
+        Use these links to verify the public flow while working active orders.
       </p>
       <div class="quick-actions">
         <a class="btn btn-primary" href="index.html">Open Homepage</a>
         <a class="btn btn-secondary" href="request-service.html">Open Request Form</a>
         <a class="btn btn-secondary" href="success.html">Open Success Page</a>
       </div>
+      <div class="change-note">
+        Update note: Version 1.1 tightens the page around real work queues, adds Customer Records access, and reduces training-style sections.
+      </div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div>Internal Orders Page</div>
-    <span class="version">Version 1.0</span>
+    <span class="version">Version 1.1</span>
   </footer>
 </body>
 </html>
