@@ -4,21 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard | 4MyIPTV Service</title>
+  <meta name="description" content="Internal control center for orders, follow-up, setup, messaging, inventory, and live page verification." />
   <style>
     :root {
       --bg: #0f172a;
       --panel: #111827;
       --panel-2: #1f2937;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --line: #e5e7eb;
-      --brand: #2563eb;
-      --brand-dark: #1d4ed8;
-      --success: #0f766e;
-      --shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
-      --radius: 16px;
-      --max: 1200px;
+      --line: #334155;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --soft: rgba(255,255,255,0.08);
+      --soft-hover: rgba(255,255,255,0.14);
+      --max-width: 1180px;
+      --radius: 12px;
+      --card-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
     }
 
     * {
@@ -28,254 +29,277 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #f8fafc;
+      background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
       color: var(--text);
+      line-height: 1.5;
     }
 
-    .topbar {
-      background: linear-gradient(135deg, var(--bg), var(--panel));
-      color: #ffffff;
-      padding: 18px 20px;
-      border-bottom: 4px solid var(--brand);
+    a {
+      color: inherit;
+      text-decoration: none;
     }
 
-    .topbar-inner {
-      max-width: var(--max);
+    .site-header {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .nav-wrap {
+      max-width: var(--max-width);
       margin: 0 auto;
+      padding: 14px 20px;
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     .brand {
-      font-size: 24px;
+      font-size: 1.08rem;
       font-weight: 700;
-      letter-spacing: 0.2px;
+      white-space: nowrap;
     }
 
-    .subbrand {
-      font-size: 13px;
-      color: #cbd5e1;
-      margin-top: 4px;
-    }
-
-    .nav {
+    .nav-links {
       display: flex;
-      flex-wrap: wrap;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .nav a {
-      color: #ffffff;
-      text-decoration: none;
-      background: rgba(255, 255, 255, 0.10);
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 700;
+    .nav-links a {
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: var(--muted);
+      transition: background 0.2s ease, color 0.2s ease;
     }
 
-    .nav a.active {
-      background: var(--brand);
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
     }
 
-    .container {
-      max-width: var(--max);
+    .page-shell {
+      max-width: var(--max-width);
       margin: 0 auto;
-      padding: 24px 20px 40px;
+      padding: 28px 20px 44px;
+    }
+
+    .hero,
+    .panel,
+    .stat-card,
+    .workflow-card,
+    .tool-card,
+    .shortcut-card {
+      background: linear-gradient(180deg, rgba(31,41,55,0.94) 0%, rgba(15,23,42,0.98) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
     }
 
     .hero {
-      background: #ffffff;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
       padding: 24px;
-      box-shadow: var(--shadow);
-      margin-bottom: 22px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(37,99,235,0.18);
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
     }
 
     h1 {
       margin: 0 0 10px;
-      font-size: 34px;
+      font-size: 2rem;
       line-height: 1.1;
     }
 
-    .hero p {
+    .hero p,
+    .panel-intro,
+    .stat-note,
+    .workflow-card p,
+    .tool-card p,
+    .shortcut-card p {
       margin: 0;
-      font-size: 16px;
-      color: #334155;
+      color: var(--muted);
+      font-size: 0.95rem;
     }
 
-    .stats {
+    .priority-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 0 0 22px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-soft {
+      background: var(--soft);
+      color: var(--text);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    .btn-soft:hover {
+      background: var(--soft-hover);
+    }
+
+    .btn-priority {
+      background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.30);
+    }
+
+    .btn-tool {
+      background: rgba(16, 185, 129, 0.14);
+      color: #d1fae5;
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-tool:hover {
+      background: rgba(16, 185, 129, 0.22);
+    }
+
+    .stats-grid,
+    .workflow-grid,
+    .tools-grid,
+    .shortcuts-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      margin: 22px 0;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin: 0 0 22px;
     }
 
     .stat-card {
-      background: #ffffff;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: var(--shadow);
+      padding: 18px;
     }
 
     .stat-label {
-      font-size: 14px;
-      color: var(--muted);
+      font-size: 0.78rem;
       font-weight: 700;
+      color: #93c5fd;
       text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-bottom: 10px;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
     }
 
     .stat-value {
-      font-size: 36px;
+      font-size: 2rem;
       font-weight: 800;
-      line-height: 1;
       margin-bottom: 10px;
     }
 
-    .stat-note {
-      font-size: 14px;
-      color: #475569;
-      line-height: 1.4;
-    }
-
-    .section {
-      background: #ffffff;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
+    .panel {
+      padding: 22px;
       margin-bottom: 22px;
     }
 
     h2 {
       margin: 0 0 8px;
-      font-size: 26px;
+      font-size: 1.5rem;
       line-height: 1.2;
     }
 
     h3 {
       margin: 0 0 8px;
-      font-size: 20px;
+      font-size: 1.05rem;
       line-height: 1.3;
-    }
-
-    .section-intro {
-      margin: 0 0 18px;
-      color: #475569;
-      font-size: 15px;
-      line-height: 1.5;
     }
 
     .button-row {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-    }
-
-    .btn {
-      display: inline-block;
-      text-decoration: none;
-      background: var(--brand);
-      color: #ffffff;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 14px;
-      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.20);
-    }
-
-    .btn:hover {
-      background: var(--brand-dark);
-    }
-
-    .btn.secondary {
-      background: #e2e8f0;
-      color: #0f172a;
-      box-shadow: none;
-    }
-
-    .btn.secondary:hover {
-      background: #cbd5e1;
-    }
-
-    .btn.tool {
-      background: #0f766e;
-      box-shadow: 0 6px 16px rgba(15, 118, 110, 0.18);
-    }
-
-    .btn.tool:hover {
-      background: #0d5f58;
+      margin-top: 16px;
     }
 
     .workflow-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       margin-top: 18px;
     }
 
     .workflow-card,
-    .mini-card,
+    .tool-card,
     .shortcut-card {
-      background: #f8fafc;
-      border: 1px solid var(--line);
-      border-radius: 14px;
       padding: 18px;
-    }
-
-    .workflow-card p,
-    .mini-card p,
-    .shortcut-card p {
-      margin: 0 0 14px;
-      color: #475569;
-      font-size: 14px;
-      line-height: 1.5;
     }
 
     .tools-grid,
     .shortcuts-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       margin-top: 18px;
     }
 
-    .mini-card h3,
-    .shortcut-card h3 {
-      margin-bottom: 8px;
+    .workflow-card p,
+    .tool-card p,
+    .shortcut-card p {
+      margin-bottom: 14px;
     }
 
     .footer {
       text-align: center;
-      color: #64748b;
-      font-size: 13px;
-      padding: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      padding-top: 6px;
     }
 
     .version {
       margin-top: 8px;
       font-weight: 700;
-      color: #334155;
+      color: #93c5fd;
     }
 
     @media (max-width: 980px) {
-      .stats,
+      .stats-grid,
       .workflow-grid,
       .tools-grid,
       .shortcuts-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (max-width: 700px) {
-      .stats,
+      .stats-grid,
       .workflow-grid,
       .tools-grid,
       .shortcuts-grid {
@@ -283,11 +307,15 @@
       }
 
       h1 {
-        font-size: 28px;
+        font-size: 1.7rem;
       }
 
       .brand {
-        font-size: 21px;
+        font-size: 1rem;
+      }
+
+      .page-shell {
+        padding-top: 22px;
       }
     }
   </style>
@@ -295,23 +323,19 @@
 <body>
   <!--
     Page: admin-dashboard.html
-    Version: 1.6
+    Version: 1.8
     Change Notes:
-    - Updated from v1.5 to v1.6
-    - Added Open TV Panel to System Tools
-    - Added Open Backup TV Panel to System Tools
-    - Added Apps Script Editor button placeholder in System Tools
-    - Preserved existing dashboard structure and workflow sections
+    - Updated from v1.7 to v1.8
+    - Restored platform-consistent dark styling to match the rest of the site
+    - Added top-priority TV Panel and Backup TV Panel buttons near the top of the page
+    - Kept TV Panel links in System Tools for consistency
+    - Preserved dashboard operational structure without adding new logic
   -->
 
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div>
-        <div class="brand">4MyIPTV Service Admin</div>
-        <div class="subbrand">Internal control center for orders, follow-up, setup, messaging, inventory, and live page verification.</div>
-      </div>
-
-      <nav class="nav">
+  <header class="site-header">
+    <div class="nav-wrap">
+      <div class="brand">4MyIPTV Service Admin</div>
+      <nav class="nav-links">
         <a href="admin-dashboard.html" class="active">Admin Dashboard</a>
         <a href="admin-orders.html">Admin Orders</a>
         <a href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Orders Sheet</a>
@@ -321,13 +345,19 @@
     </div>
   </header>
 
-  <main class="container">
+  <main class="page-shell">
     <section class="hero">
+      <div class="eyebrow">Internal Control Center</div>
       <h1>Admin Dashboard</h1>
       <p>Internal control center for orders, follow-up, setup, messaging, inventory, and live page verification.</p>
     </section>
 
-    <section class="stats">
+    <div class="priority-bar">
+      <a class="btn btn-priority" href="https://tvpluspanel.net/" target="_blank" rel="noopener noreferrer">Open TV Panel</a>
+      <a class="btn btn-priority" href="https://tvpluspanel.ru/" target="_blank" rel="noopener noreferrer">Open Backup TV Panel</a>
+    </div>
+
+    <section class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">New Requests</div>
         <div class="stat-value">0</div>
@@ -353,149 +383,144 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="panel">
       <h2>Top Daily Actions</h2>
-      <p class="section-intro">
-        Use these first to review incoming requests, send responses, and verify the live customer flow.
-      </p>
+      <p class="panel-intro">Use these first to review incoming requests, send responses, and verify the live customer flow.</p>
       <div class="button-row">
-        <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders Sheet</a>
-        <a class="btn" href="admin-orders.html">Open Admin Orders</a>
-        <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
-        <a class="btn secondary" href="request-service.html" target="_blank" rel="noopener noreferrer">Test Request Form</a>
-        <a class="btn secondary" href="success.html" target="_blank" rel="noopener noreferrer">Test Success Page</a>
+        <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders Sheet</a>
+        <a class="btn btn-primary" href="admin-orders.html">Open Admin Orders</a>
+        <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
+        <a class="btn btn-soft" href="request-service.html" target="_blank" rel="noopener noreferrer">Test Request Form</a>
+        <a class="btn btn-soft" href="success.html" target="_blank" rel="noopener noreferrer">Test Success Page</a>
       </div>
     </section>
 
-    <section class="section">
+    <section class="panel">
       <h2>Daily Workflow</h2>
-      <p class="section-intro">
-        Follow this order to keep intake, response, payment, and setup moving without missing steps.
-      </p>
+      <p class="panel-intro">Follow this order to keep intake, response, payment, and setup moving without missing steps.</p>
 
       <div class="workflow-grid">
         <div class="workflow-card">
           <h3>1. Review New Requests</h3>
           <p>Start in Orders and check new submissions, contact details, device type, and service needs.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders</a>
         </div>
 
         <div class="workflow-card">
           <h3>2. Send the Right Message</h3>
           <p>Use the template tab for quotes, payment requests, follow-up, support, and renewal communication.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Templates</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Templates</a>
         </div>
 
         <div class="workflow-card">
           <h3>3. Check Setup Readiness</h3>
           <p>Review available devices, dropdown lists, and supporting backend tabs before moving an order forward.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Inventory</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Inventory</a>
         </div>
       </div>
     </section>
 
-    <section class="section">
+    <section class="panel">
+      <h2>Operations and Tools</h2>
+      <p class="panel-intro">Keep the main operating links and support tools easy to reach without changing the workflow model.</p>
+
       <div class="tools-grid">
-        <div class="mini-card">
+        <div class="tool-card">
           <h3>Orders and Messaging</h3>
           <p>Core daily operating tools for reviewing requests and responding quickly.</p>
           <div class="button-row">
-            <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders Sheet</a>
-            <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
+            <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders Sheet</a>
+            <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
           </div>
         </div>
 
-        <div class="mini-card">
+        <div class="tool-card">
           <h3>Inventory and Lists</h3>
           <p>Open inventory and backend list controls used to support dropdowns and setup references.</p>
           <div class="button-row">
-            <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Device Inventory</a>
-            <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists Tab</a>
+            <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Device Inventory</a>
+            <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists Tab</a>
           </div>
         </div>
 
-        <div class="mini-card">
+        <div class="tool-card">
           <h3>System Settings</h3>
           <p>Open the configuration tools behind the workflow and keep backend setup easy to reach.</p>
           <div class="button-row">
-            <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=91066834#gid=91066834" target="_blank" rel="noopener noreferrer">Open Settings Tab</a>
-            <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists Tab</a>
+            <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=91066834#gid=91066834" target="_blank" rel="noopener noreferrer">Open Settings Tab</a>
+            <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists Tab</a>
           </div>
         </div>
 
-        <div class="mini-card">
+        <div class="tool-card">
           <h3>System Tools</h3>
           <p>Open the supporting tools used to maintain the repo and backend workflow.</p>
           <div class="button-row">
-            <a class="btn tool" href="https://github.com/tgarrett10/4myiptv-service-v1" target="_blank" rel="noopener noreferrer">Open GitHub Repo</a>
-            <a class="btn tool" href="https://tvpluspanel.net/" target="_blank" rel="noopener noreferrer">Open TV Panel</a>
-            <a class="btn tool" href="https://tvpluspanel.ru/" target="_blank" rel="noopener noreferrer">Open Backup TV Panel</a>
-            <a class="btn secondary" href="https://script.google.com/home/projects/YOUR_SCRIPT_ID/edit" target="_blank" rel="noopener noreferrer">Open Apps Script Editor</a>
+            <a class="btn btn-tool" href="https://github.com/tgarrett10/4myiptv-service-v1" target="_blank" rel="noopener noreferrer">Open GitHub Repo</a>
+            <a class="btn btn-tool" href="https://tvpluspanel.net/" target="_blank" rel="noopener noreferrer">Open TV Panel</a>
+            <a class="btn btn-tool" href="https://tvpluspanel.ru/" target="_blank" rel="noopener noreferrer">Open Backup TV Panel</a>
+            <a class="btn btn-soft" href="https://script.google.com/home/projects/YOUR_SCRIPT_ID/edit" target="_blank" rel="noopener noreferrer">Open Apps Script Editor</a>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section">
+    <section class="panel">
       <h2>Backend Shortcuts</h2>
-      <p class="section-intro">
-        Direct links to the main backend tabs so you do not need to navigate through the sheet manually.
-      </p>
+      <p class="panel-intro">Direct links to the main backend tabs so you do not need to navigate through the sheet manually.</p>
 
       <div class="shortcuts-grid">
         <div class="shortcut-card">
           <h3>Orders</h3>
           <p>Open the main operating tab for intake, status, and follow-up.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders</a>
         </div>
 
         <div class="shortcut-card">
           <h3>Settings</h3>
           <p>Open configuration items that support the workflow.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=91066834#gid=91066834" target="_blank" rel="noopener noreferrer">Open Settings</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=91066834#gid=91066834" target="_blank" rel="noopener noreferrer">Open Settings</a>
         </div>
 
         <div class="shortcut-card">
           <h3>Lists</h3>
           <p>Open dropdown source values and list management tools.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists</a>
         </div>
 
         <div class="shortcut-card">
           <h3>Message Templates</h3>
           <p>Open your quote, payment, follow-up, and renewal messaging.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
         </div>
 
         <div class="shortcut-card">
           <h3>Device Inventory</h3>
           <p>Open device reference pricing, stock notes, and supported options.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Device Inventory</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Device Inventory</a>
         </div>
 
         <div class="shortcut-card">
           <h3>Full Spreadsheet</h3>
           <p>Open the full workbook when you need to move across all tabs quickly.</p>
-          <a class="btn" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit" target="_blank" rel="noopener noreferrer">Open Full Spreadsheet</a>
+          <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit" target="_blank" rel="noopener noreferrer">Open Full Spreadsheet</a>
         </div>
       </div>
     </section>
 
-    <section class="section">
+    <section class="panel">
       <h2>Live Site Verification</h2>
-      <p class="section-intro">
-        Use these links to verify that the public customer flow is still working correctly after updates.
-      </p>
+      <p class="panel-intro">Use these links to verify that the public customer flow is still working correctly after updates.</p>
       <div class="button-row">
-        <a class="btn secondary" href="index.html" target="_blank" rel="noopener noreferrer">Open Homepage</a>
-        <a class="btn secondary" href="request-service.html" target="_blank" rel="noopener noreferrer">Open Request Form</a>
-        <a class="btn secondary" href="success.html" target="_blank" rel="noopener noreferrer">Open Success Page</a>
+        <a class="btn btn-soft" href="index.html" target="_blank" rel="noopener noreferrer">Open Homepage</a>
+        <a class="btn btn-soft" href="request-service.html" target="_blank" rel="noopener noreferrer">Open Request Form</a>
+        <a class="btn btn-soft" href="success.html" target="_blank" rel="noopener noreferrer">Open Success Page</a>
       </div>
     </section>
 
     <div class="footer">
       <div>Internal Admin Page</div>
-      <div class="version">Version 1.6</div>
+      <div class="version">Version 1.8</div>
     </div>
   </main>
 </body>
