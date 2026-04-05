@@ -15,7 +15,6 @@
       --muted: #cbd5e1;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
-      --success: #16a34a;
       --danger: #dc2626;
       --max-width: 1100px;
       --radius: 10px;
@@ -91,7 +90,7 @@
 
     .hero {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 22px;
     }
 
     .hero h1 {
@@ -105,6 +104,38 @@
       max-width: 760px;
       color: var(--muted);
       font-size: 1rem;
+    }
+
+    .hero-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .info-strip {
+      background: rgba(17, 24, 39, 0.94);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .info-strip-title {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .info-strip-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .info-strip-list li {
+      margin-bottom: 6px;
     }
 
     .form-card {
@@ -184,6 +215,40 @@
       margin-top: 6px;
       color: var(--muted);
       font-size: 0.88rem;
+    }
+
+    .dynamic-helper {
+      margin-top: 12px;
+      background: rgba(37, 99, 235, 0.12);
+      border: 1px solid rgba(37, 99, 235, 0.28);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #dbeafe;
+      font-size: 0.92rem;
+    }
+
+    .reassurance-box {
+      margin-top: 18px;
+      background: rgba(31, 41, 55, 0.75);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .reassurance-box h3 {
+      margin: 0 0 10px;
+      font-size: 0.98rem;
+    }
+
+    .reassurance-box ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .reassurance-box li {
+      margin-bottom: 8px;
     }
 
     .status-box {
@@ -274,6 +339,17 @@
   </style>
 </head>
 <body>
+  <!--
+    Page: request-service.html
+    Version: 1.2
+    Change Notes:
+    - Improved customer guidance
+    - Added category-based helper messaging
+    - Moved response timing higher
+    - Clarified next-step expectations
+    - Tightened request flow wording
+  -->
+
   <header class="site-header">
     <div class="nav-wrap">
       <div class="brand">4MyIPTV Service</div>
@@ -290,8 +366,21 @@
       <h1>Request Service</h1>
       <p>
         Tell us what you need and we will follow up with the right next step for service,
-        setup, or device options.
+        setup, support, or device options.
       </p>
+      <div class="hero-note">
+        Most responses are sent within a few hours and no later than 24 hours EST.
+      </div>
+    </section>
+
+    <section class="info-strip" aria-label="What this form is for">
+      <h2 class="info-strip-title">Use this form for:</h2>
+      <ul class="info-strip-list">
+        <li>Online service</li>
+        <li>Preloaded devices</li>
+        <li>Renewals</li>
+        <li>Support help</li>
+      </ul>
     </section>
 
     <section class="form-card">
@@ -365,6 +454,9 @@
                 <option value="Android TV Box (Amazon)">Android TV Box (Amazon)</option>
                 <option value="Not Sure">Not Sure</option>
               </select>
+              <div class="helper">
+                For online-only service or renewal requests, device selection can stay on None.
+              </div>
             </div>
 
             <div class="field">
@@ -378,6 +470,10 @@
                 <option value="5+">5+</option>
               </select>
             </div>
+          </div>
+
+          <div id="categoryHelper" class="dynamic-helper">
+            Select a request type to see the best path for online service, device orders, renewals, or support.
           </div>
         </div>
 
@@ -420,19 +516,28 @@
               <textarea
                 id="customerRequestNotes"
                 name="customerRequestNotes"
-                placeholder="Add any questions, timing needs, device preferences, or special setup details"
+                placeholder="Add any questions, timing needs, device preferences, current setup details, or support issue details here."
               ></textarea>
               <div class="helper">
-                Include anything important here, such as device preference, timing, current setup, or special requests.
+                Include anything important here, especially support issues, renewal details, timing needs, or device preferences.
               </div>
             </div>
           </div>
         </div>
 
+        <div class="reassurance-box">
+          <h3>After you submit</h3>
+          <ul>
+            <li>We review your request</li>
+            <li>We follow up with the right next step</li>
+            <li>Payment is only requested when your order path is confirmed</li>
+          </ul>
+        </div>
+
         <div id="formError" class="status-box error" role="alert" aria-live="polite"></div>
 
         <div class="submit-wrap">
-          <button type="submit" id="submitBtn" class="submit-btn">Request Service</button>
+          <button type="submit" id="submitBtn" class="submit-btn">Send Request</button>
         </div>
 
         <div class="timing-note">
@@ -444,7 +549,7 @@
 
   <footer class="site-footer">
     <div>4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</div>
-    <span class="version">Version 1.1</span>
+    <span class="version">Version 1.2</span>
   </footer>
 
   <script>
@@ -453,6 +558,7 @@
     const form = document.getElementById('requestServiceForm');
     const submitBtn = document.getElementById('submitBtn');
     const errorBox = document.getElementById('formError');
+    const categoryHelper = document.getElementById('categoryHelper');
 
     const orderCategory = document.getElementById('orderCategory');
     const deviceRequested = document.getElementById('deviceRequested');
@@ -468,6 +574,32 @@
     function clearError() {
       errorBox.textContent = '';
       errorBox.classList.remove('show');
+    }
+
+    function updateCategoryHelper() {
+      const category = orderCategory.value;
+
+      if (category === 'Online Service Only') {
+        categoryHelper.textContent = 'Online service requests do not require a device selection or shipping. The form will set those for you.';
+        return;
+      }
+
+      if (category === 'Renewal') {
+        categoryHelper.textContent = 'Renewal requests will be treated as one renewal by default. Add any important account details in the notes box.';
+        return;
+      }
+
+      if (category === 'Support Request') {
+        categoryHelper.textContent = 'Support requests should include the issue, current setup, and anything already tried in the notes box.';
+        return;
+      }
+
+      if (category === 'Device + Service' || category === 'Device Only') {
+        categoryHelper.textContent = 'For device requests, choose the closest device option, quantity, shipping need, and setup type so we can follow up faster.';
+        return;
+      }
+
+      categoryHelper.textContent = 'Select a request type to see the best path for online service, device orders, renewals, or support.';
     }
 
     function applySmartDefaults() {
@@ -494,6 +626,8 @@
       if (deviceRequested.value === 'None' && (!setupType.value || setupType.value === 'Not Sure')) {
         setupType.value = 'Online setup';
       }
+
+      updateCategoryHelper();
     }
 
     orderCategory.addEventListener('change', applySmartDefaults);
@@ -527,11 +661,13 @@
 
         window.location.href = 'success.html';
       } catch (error) {
-        showError('Something went wrong. Please try again.');
+        showError('Your request could not be submitted right now. Please try again in a moment.');
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Request Service';
+        submitBtn.textContent = 'Send Request';
       }
     });
+
+    updateCategoryHelper();
   </script>
 </body>
 </html>
