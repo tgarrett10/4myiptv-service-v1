@@ -444,7 +444,7 @@
 
   <footer class="site-footer">
     <div>4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</div>
-    <span class="version">Version 1.0</span>
+    <span class="version">Version 1.1</span>
   </footer>
 
   <script>
@@ -510,30 +510,24 @@
 
       applySmartDefaults();
 
-      const formData = new FormData(form);
-      const payload = Object.fromEntries(formData.entries());
+      const payload = new URLSearchParams(new FormData(form));
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
 
       try {
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: 'POST',
+          mode: 'no-cors',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: JSON.stringify(payload)
+          body: payload.toString()
         });
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.message || 'Submission failed.');
-        }
 
         window.location.href = 'success.html';
       } catch (error) {
-        showError(error.message || 'Something went wrong. Please try again.');
+        showError('Something went wrong. Please try again.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Request Service';
       }
