@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard | 4MyIPTV Service</title>
-  <meta name="description" content="Internal control center for orders, tools, backend shortcuts, and live page verification for 4MyIPTV Service." />
+  <meta name="description" content="Internal control center for panel access, orders, backend tools, and live customer flow testing for 4MyIPTV Service." />
   <style>
     :root {
       --bg: #0f172a;
@@ -97,6 +97,7 @@
       margin: 0;
       color: var(--muted);
       font-size: 0.98rem;
+      max-width: 860px;
     }
 
     .section-block {
@@ -112,6 +113,12 @@
       margin: 0 0 12px;
       font-size: 1.02rem;
       font-weight: 700;
+    }
+
+    .section-copy {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.94rem;
     }
 
     .button-row {
@@ -145,6 +152,30 @@
 
     .btn-secondary:hover { background: var(--soft-hover); }
 
+    .focus-card {
+      background: rgba(31, 41, 55, 0.75);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .focus-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .focus-card li {
+      margin-bottom: 8px;
+    }
+
+    .change-note {
+      margin-top: 14px;
+      color: #94a3b8;
+      font-size: 0.86rem;
+    }
+
     .site-footer {
       border-top: 1px solid rgba(255,255,255,0.08);
       padding: 22px 20px 28px;
@@ -170,13 +201,14 @@
 <body>
   <!--
     Page: admin-dashboard.html
-    Version: 2.0
+    Version: 2.1
     Change Notes:
-    - Updated from v1.9 to v2.0
-    - Simplified wording across the dashboard
-    - Removed summary cards, workflow explanation blocks, and checklist notes
-    - Tightened the page into a cleaner launch-style control center
-    - Kept only current live tools and existing approved links
+    - Updated from v2.0 to v2.1
+    - Improved launch flow for daily use
+    - Promoted Orders Sheet into Priority Actions
+    - Added Customer Records access to operations
+    - Reduced duplicate shortcut structure
+    - Added a small daily focus note
   -->
 
   <header class="site-header">
@@ -194,7 +226,7 @@
   <main class="page-wrap">
     <section class="hero">
       <h1>Admin Dashboard</h1>
-      <p>Main control center for panel access, orders, backend tools, and page testing.</p>
+      <p>Open this page first to reach the panel, review active work, open the backend, and test the live customer flow.</p>
     </section>
 
     <section class="section-block">
@@ -203,14 +235,15 @@
         <a class="btn btn-primary" href="https://tvpluspanel.net/" target="_blank" rel="noopener noreferrer">Open TV Panel</a>
         <a class="btn btn-primary" href="https://backup.tvpluspanel.ru/" target="_blank" rel="noopener noreferrer">Open Backup TV Panel</a>
         <a class="btn btn-secondary" href="admin-orders.html">Open Admin Orders</a>
+        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders Sheet</a>
       </div>
     </section>
 
     <section class="section-block">
       <h2 class="section-title">Daily Operations</h2>
       <div class="button-row">
-        <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders Sheet</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
+        <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
+        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2007863184#gid=2007863184" target="_blank" rel="noopener noreferrer">Open Customer Records</a>
         <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Device Inventory</a>
         <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit" target="_blank" rel="noopener noreferrer">Open Full Spreadsheet</a>
       </div>
@@ -227,7 +260,7 @@
     </section>
 
     <section class="section-block">
-      <h2 class="section-title">Public Page Testing</h2>
+      <h2 class="section-title">Customer Flow Testing</h2>
       <div class="button-row">
         <a class="btn btn-secondary" href="index.html">Open Homepage</a>
         <a class="btn btn-secondary" href="request-service.html">Open Request Form</a>
@@ -236,19 +269,34 @@
     </section>
 
     <section class="section-block">
-      <h2 class="section-title">Backend Shortcuts</h2>
+      <h2 class="section-title">Quick Access</h2>
       <div class="button-row">
         <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Orders</a>
         <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Message Templates</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Device Inventory</a>
+        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2007863184#gid=2007863184" target="_blank" rel="noopener noreferrer">Customer Records</a>
         <a class="btn btn-secondary" href="admin-orders.html">Admin Orders Page</a>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <h2 class="section-title">Today's Focus</h2>
+      <div class="focus-card">
+        <ul>
+          <li>Start with Admin Orders</li>
+          <li>Move new requests into the correct next step</li>
+          <li>Keep paid work moving</li>
+          <li>Close finished orders cleanly into customer records</li>
+        </ul>
+      </div>
+      <div class="change-note">
+        Update note: Version 2.1 improves the launch flow for daily use, adds Customer Records access, and reduces duplicate shortcut structure.
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div>Internal Admin Page</div>
-    <span class="version">Version 2.0</span>
+    <span class="version">Version 2.1</span>
   </footer>
 </body>
 </html>
