@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service | Admin Orders</title>
   <!--
-    Version: 2.3
+    Version: 2.4
     Last Updated: 2026-04-05
     Change Notes:
     - Preserved the existing dark admin-orders style and live order table concept.
@@ -13,6 +13,8 @@
     - Added local draft saving by request ID so quote work is not lost between refreshes.
     - Added suggested pricing logic for service plans and device packages.
     - Added copy-ready quote, payment request, paid confirmation, and support handoff messages.
+    - Added a real Save to Sheet action for the quote workspace using the existing updateOrder Apps Script contract.
+    - Added backend field mapping support for quoted plan, quoted device, payment method, and payment link.
     - Kept the page as an internal admin control page, not a customer-facing page.
   -->
   <style>
@@ -1099,6 +1101,7 @@
             </div>
 
             <div class="button-row" style="margin-top:14px;">
+              <button class="btn btn-primary" id="saveToSheetBtn" type="button" disabled>Save to Sheet</button>
               <button class="btn btn-green" id="saveDraftBtn" type="button" disabled>Save Draft</button>
               <button class="btn btn-secondary" id="loadSuggestionBtn" type="button" disabled>Use Suggested Total</button>
               <button class="btn btn-purple" id="openGeneratorBtn" type="button">Open Checkout Generator</button>
@@ -1169,7 +1172,7 @@
 
     <div class="footer-strip">
       <strong>4MyIPTV Service • Admin Orders</strong>
-      <div class="version">Version 2.3 • Last Updated: April 5, 2026</div>
+      <div class="version">Version 2.4 • Last Updated: April 5, 2026</div>
     </div>
   </div>
 
@@ -1228,6 +1231,7 @@
     const suggestedQuoteDisplayEl = document.getElementById("suggestedQuoteDisplay");
     const draftMessageEl = document.getElementById("draftMessage");
 
+    const saveToSheetBtn = document.getElementById("saveToSheetBtn");
     const saveDraftBtn = document.getElementById("saveDraftBtn");
     const clearDraftBtn = document.getElementById("clearDraftBtn");
     const loadSuggestionBtn = document.getElementById("loadSuggestionBtn");
@@ -1335,7 +1339,10 @@
       const deviceSelected = getFirstValue(order, ["deviceSelected", "device", "deviceChoice", "Device Selected"]);
       const tvCount = getFirstValue(order, ["tvCount", "numberOfTVs", "TV Count"]);
       const fulfillmentType = getFirstValue(order, ["fulfillmentType", "Fulfillment Type"]);
+      const quotedPlan = getFirstValue(order, ["quotedPlan", "finalPlan", "Quoted Plan"]);
+      const quotedDevice = getFirstValue(order, ["quotedDevice", "finalDevice", "Quoted Device"]);
       const quoteAmount = getFirstValue(order, ["quoteAmount", "amount", "Quote Amount"]);
+      const paymentMethod = getFirstValue(order, ["paymentMethod", "Payment Method"]);
       const paymentStatus = getFirstValue(order, ["paymentStatus", "payment", "Payment Status"]);
       const orderStatus = getFirstValue(order, ["orderStatus", "status", "Order Status"]);
       const deliveryStatus = getFirstValue(order, ["deliveryStatus", "shippingStatus", "Delivery Status"]);
@@ -1358,7 +1365,10 @@
         deviceSelected,
         tvCount,
         fulfillmentType,
+        quotedPlan,
+        quotedDevice,
         quoteAmount,
+        paymentMethod,
         paymentStatus,
         orderStatus,
         deliveryStatus,
@@ -1586,14 +1596,14 @@
     }
 
     function getDefaultWorkspaceState(order) {
-      const finalPlan = parsePlanFromRequest(order.planInterest);
-      const finalDevice = parseDeviceFromRequest(order.deviceSelected);
+      const finalPlan = order.quotedPlan || parsePlanFromRequest(order.planInterest);
+      const finalDevice = order.quotedDevice || parseDeviceFromRequest(order.deviceSelected);
       const quoteAmount = order.quoteAmount ? String(numericAmount(order.quoteAmount).toFixed(2)) : "";
       return {
         finalPlan,
         finalDevice,
         quoteAmount,
-        paymentMethod: "",
+        paymentMethod: order.paymentMethod || order.fulfillmentType || "",
         paymentLink: order.paymentLink || "",
         supportRoute: order.supportRoute || "",
         orderStatus: order.orderStatus || "",
@@ -1648,9 +1658,20 @@
           </div>
         </div>
 
-        <div class="detail-box" style="margin-top:12px;">
-          <h3>Notes</h3>
-          <div class="small">${escapeHtml(order.notes || "No notes available.")}</div>
+        <div class="detail-grid two-col" style="margin-top:12px;">
+          <div class="detail-box">
+            <h3>Saved Quote Snapshot</h3>
+            <div class="small"><strong>Quoted Plan:</strong> ${escapeHtml(order.quotedPlan || "Not saved yet")}</div>
+            <div class="small"><strong>Quoted Device:</strong> ${escapeHtml(order.quotedDevice || "Not saved yet")}</div>
+            <div class="small"><strong>Quote Amount:</strong> ${escapeHtml(order.quoteAmount || "Not saved yet")}</div>
+            <div class="small"><strong>Payment Method:</strong> ${escapeHtml(order.paymentMethod || "Not saved yet")}</div>
+            <div class="small"><strong>Payment Link:</strong> ${escapeHtml(order.paymentLink || "Not saved yet")}</div>
+          </div>
+
+          <div class="detail-box">
+            <h3>Notes</h3>
+            <div class="small">${escapeHtml(order.notes || "No notes available.")}</div>
+          </div>
         </div>
       `;
     }
@@ -1759,6 +1780,7 @@ If you need help during setup, reach out with your name and the details of the i
       copyMessageBtn.disabled = !hasOrder;
       copyInternalSummaryBtn.disabled = !hasOrder;
       openPaymentLinkBtn.disabled = !hasOrder || !safeRaw(paymentLinkEl.value);
+      saveToSheetBtn.disabled = !hasOrder;
       saveDraftBtn.disabled = !hasOrder;
       clearDraftBtn.disabled = !hasOrder;
 
@@ -1801,6 +1823,72 @@ If you need help during setup, reach out with your name and the details of the i
       }).catch(() => {
         setDraftMessage("Could not copy text to the clipboard.", "error");
       });
+    }
+
+    async function saveWorkspaceToSheet() {
+      const order = getOrderById(selectedOrderId);
+
+      if (!order) {
+        setDraftMessage("Select an order first.", "error");
+        return;
+      }
+
+      const workspace = getCurrentWorkspaceState();
+      const payload = {
+        action: "updateOrder",
+        id: selectedOrderId,
+        fulfillmentType: workspace.paymentMethod || order.fulfillmentType || "",
+        quotedPlan: workspace.finalPlan,
+        quotedDevice: workspace.finalDevice,
+        quoteAmount: workspace.quoteAmount,
+        paymentMethod: workspace.paymentMethod,
+        paymentLink: workspace.paymentLink,
+        supportRoute: workspace.supportRoute,
+        orderStatus: workspace.orderStatus,
+        paymentStatus: workspace.paymentStatus,
+        notes: workspace.workspaceNotes
+      };
+
+      saveToSheetBtn.disabled = true;
+      saveToSheetBtn.textContent = "Saving...";
+      setDraftMessage("Saving quote workspace to Google Sheets.", "");
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status + " returned from Apps Script.");
+        }
+
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (jsonError) {
+          result = { success: true };
+        }
+
+        if (result.success === false) {
+          throw new Error(result.message || "Save failed.");
+        }
+
+        saveDraftForOrder(selectedOrderId, workspace);
+        setDraftMessage("Quote workspace saved to Google Sheets.", "ok");
+        setMessage("Order update submitted successfully.", "ok");
+        loadOrders();
+      } catch (error) {
+        console.error("Save Workspace Error:", error);
+        setDraftMessage("Save failed. " + error.message, "error");
+        setMessage("Save failed. " + error.message, "error");
+      } finally {
+        saveToSheetBtn.disabled = false;
+        saveToSheetBtn.textContent = "Save to Sheet";
+      }
     }
 
     function loadOrders() {
@@ -1884,6 +1972,8 @@ If you need help during setup, reach out with your name and the details of the i
       el.addEventListener("input", syncDraftAndPreview);
       el.addEventListener("change", syncDraftAndPreview);
     });
+
+    saveToSheetBtn.addEventListener("click", saveWorkspaceToSheet);
 
     loadSuggestionBtn.addEventListener("click", () => {
       const suggested = getSuggestedQuoteAmount();
