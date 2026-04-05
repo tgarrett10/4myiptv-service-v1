@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service</title>
-  <meta name="description" content="4MyIPTV Service offers IPTV service, device setup, and support with a simple customer request process." />
+  <meta name="description" content="Request IPTV service, device setup, renewals, or support through one simple form with 4MyIPTV Service." />
   <style>
     :root {
       --bg: #0f172a;
@@ -84,36 +84,42 @@
     .hero {
       max-width: var(--max-width);
       margin: 0 auto;
-      padding: 72px 20px 56px;
+      padding: 72px 20px 48px;
       text-align: center;
     }
 
     .hero h1 {
-      margin: 0 0 16px;
-      font-size: 2.5rem;
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 4vw, 3rem);
       line-height: 1.1;
     }
 
     .hero p {
-      margin: 0 auto 28px;
+      margin: 0 auto 22px;
       max-width: 760px;
       color: var(--muted);
-      font-size: 1.05rem;
+      font-size: 1.02rem;
     }
 
     .cta-row {
       display: flex;
       justify-content: center;
-      gap: 14px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
     .btn {
       display: inline-block;
-      padding: 14px 22px;
-      border-radius: 10px;
+      padding: 13px 22px;
+      border-radius: var(--radius);
       font-weight: 700;
       transition: background 0.2s ease, transform 0.2s ease;
+      text-align: center;
+      border: 1px solid transparent;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
     }
 
     .btn-primary {
@@ -128,48 +134,112 @@
     .btn-secondary {
       background: rgba(255,255,255,0.08);
       color: var(--text);
-      border: 1px solid rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.08);
     }
 
     .btn-secondary:hover {
       background: rgba(255,255,255,0.14);
     }
 
-    .section {
+    .section-wrap {
       max-width: var(--max-width);
       margin: 0 auto;
-      padding: 0 20px 52px;
+      padding: 0 20px 24px;
     }
 
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .card {
+    .panel {
       background: rgba(17, 24, 39, 0.94);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 14px;
-      padding: 22px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
     }
 
-    .card h2 {
-      margin: 0 0 10px;
+    .section-title {
+      margin: 0 0 12px;
       font-size: 1.15rem;
+      font-weight: 700;
     }
 
-    .card p {
+    .section-copy {
       margin: 0;
       color: var(--muted);
+      font-size: 0.96rem;
     }
 
-    .footer {
+    .steps-grid,
+    .cards-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .steps-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .cards-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .step-card,
+    .info-card {
+      background: rgba(31, 41, 55, 0.78);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .step-number {
+      display: inline-block;
+      min-width: 32px;
+      height: 32px;
+      line-height: 32px;
+      text-align: center;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.18);
+      color: #dbeafe;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .step-card h3,
+    .info-card h3 {
+      margin: 0 0 10px;
+      font-size: 1.02rem;
+    }
+
+    .step-card p,
+    .info-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .reassurance {
+      text-align: center;
+    }
+
+    .reassurance p {
+      margin: 0 auto;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 0.97rem;
+    }
+
+    .change-note {
+      margin-top: 14px;
+      color: #94a3b8;
+      font-size: 0.86rem;
+      text-align: center;
+    }
+
+    .site-footer {
       border-top: 1px solid rgba(255,255,255,0.08);
       padding: 22px 20px 28px;
       text-align: center;
       color: var(--muted);
       font-size: 0.92rem;
+      margin-top: 20px;
     }
 
     .version {
@@ -179,25 +249,47 @@
       color: #94a3b8;
     }
 
-    @media (max-width: 900px) {
-      .card-grid {
+    @media (max-width: 860px) {
+      .steps-grid,
+      .cards-grid {
         grid-template-columns: 1fr;
       }
+    }
 
-      .hero h1 {
-        font-size: 2rem;
+    @media (max-width: 640px) {
+      .cta-row {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .hero {
+        padding-top: 56px;
       }
     }
   </style>
 </head>
 <body>
+  <!--
+    Page: index.html
+    Version: 1.1
+    Change Notes:
+    - Improved homepage routing
+    - Removed weak success-page CTA
+    - Added How It Works section
+    - Tightened service explanation
+    - Improved customer next-step clarity
+  -->
+
   <header class="site-header">
     <div class="nav-wrap">
       <div class="brand">4MyIPTV Service</div>
       <nav class="nav-links" aria-label="Main Navigation">
         <a href="index.html" class="active">Home</a>
         <a href="request-service.html">Request Service</a>
-        <a href="success.html">Success</a>
+        <a href="#how-it-works">How It Works</a>
       </nav>
     </div>
   </header>
@@ -206,42 +298,76 @@
     <section class="hero">
       <h1>Stream More • Pay Less • Watch Anywhere</h1>
       <p>
-        Welcome to 4MyIPTV Service. Request IPTV service, device setup, renewals,
-        or support using a simple guided form.
+        Request IPTV service, device setup, renewals, or support through one simple form.
+        We review your request and follow up with the right next step.
       </p>
       <div class="cta-row">
         <a class="btn btn-primary" href="request-service.html">Request Service</a>
-        <a class="btn btn-secondary" href="success.html">View Success Page</a>
+        <a class="btn btn-secondary" href="#how-it-works">How It Works</a>
       </div>
     </section>
 
-    <section class="section">
-      <div class="card-grid">
-        <div class="card">
-          <h2>Service Requests</h2>
-          <p>
-            Start a new service request and tell us exactly what you need.
-          </p>
+    <section class="section-wrap" id="how-it-works">
+      <div class="panel">
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <h3>Submit Your Request</h3>
+            <p>Tell us if you need online service, a device, renewal help, or support.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <h3>We Review the Details</h3>
+            <p>We review your service or device needs and confirm the right path before anything moves forward.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <h3>We Follow Up</h3>
+            <p>We follow up with the right next step for setup, support, payment, or fulfillment.</p>
+          </div>
         </div>
-        <div class="card">
-          <h2>Device Options</h2>
-          <p>
-            Ask about preloaded devices, online setup, or support for your current setup.
-          </p>
+      </div>
+    </section>
+
+    <section class="section-wrap">
+      <div class="cards-grid">
+        <div class="info-card">
+          <h3>Service Requests</h3>
+          <p>Start a new request for online service, device help, renewals, or support through one simple form.</p>
         </div>
-        <div class="card">
-          <h2>Fast Follow-Up</h2>
-          <p>
-            Most responses are sent within a few hours and no later than 24 hours EST.
-          </p>
+
+        <div class="info-card">
+          <h3>Device and Setup Options</h3>
+          <p>Ask about preloaded devices, online setup, in-person help, or guidance with your current setup.</p>
+        </div>
+
+        <div class="info-card">
+          <h3>Fast Follow-Up</h3>
+          <p>Most responses are sent within a few hours and no later than 24 hours EST.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-wrap">
+      <div class="panel reassurance">
+        <h2 class="section-title">What Happens Next</h2>
+        <p>
+          After you send your request, we review it and follow up with the right next step for service,
+          setup, support, or device options.
+        </p>
+        <div class="change-note">
+          Update note: Version 1.1 improves homepage routing, removes the weak success-page CTA, adds a How It Works section, and tightens customer next-step clarity.
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    <div>4MyIPTV Service</div>
-    <span class="version">Version 1.0</span>
+  <footer class="site-footer">
+    <div>4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</div>
+    <span class="version">Version 1.1</span>
   </footer>
 </body>
 </html>
