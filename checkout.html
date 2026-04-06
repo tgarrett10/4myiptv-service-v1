@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4MyIPTV Service | Checkout</title>
+  <!--
+    Version: 1.1
+    Last Updated: 2026-04-06
+    Change Notes:
+    - Built for the rebuild as the controlled transplant of the old checkout page.
+    - Uses the rebuild Apps Script update endpoint instead of the old save-as-new-order pattern.
+    - Requires Order ID in the checkout link so PayPal payment updates the existing order row.
+    - Redirects to a dedicated checkout-success page so the request success page is not reused incorrectly.
+  -->
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(17, 24, 39, 0.96);
+      --panel-2: #1f2937;
+      --line: #334155;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --success: #16a34a;
+      --radius: 12px;
+      --max-width: 1120px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: linear-gradient(180deg, #0b1220 0%, #111827 100%); color: var(--text); line-height: 1.5; }
+    a { color: inherit; text-decoration: none; }
+    .site-header { border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 20; }
+    .nav-wrap { max-width: var(--max-width); margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .brand { font-size: 1.08rem; font-weight: 700; white-space: nowrap; }
+    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav-links a { padding: 8px 12px; border-radius: 8px; color: var(--muted); transition: background 0.2s ease, color 0.2s ease; }
+    .nav-links a:hover, .nav-links a.active { background: rgba(255,255,255,0.08); color: var(--text); }
+    .page-wrap { max-width: var(--max-width); margin: 0 auto; padding: 36px 20px 60px; }
+    .hero { text-align: center; margin-bottom: 22px; }
+    .hero h1 { margin: 0 0 10px; font-size: 2rem; line-height: 1.15; }
+    .hero p { margin: 0 auto; max-width: 780px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr); gap: 18px; align-items: start; }
+    .card { background: var(--panel); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.24); }
+    .card + .card { margin-top: 18px; }
+    h2 { margin: 0 0 10px; font-size: 1.15rem; }
+    .subhead { margin: 0 0 16px; color: var(--muted); font-size: 0.95rem; }
+    .locked-grid, .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .locked-item { background: rgba(31, 41, 55, 0.72); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; }
+    .locked-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 6px; font-weight: 700; }
+    .locked-value { color: var(--text); font-size: 0.95rem; word-break: break-word; }
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 0.95rem; font-weight: 700; }
+    input, textarea { width: 100%; padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 0.95rem; font-family: Arial, Helvetica, sans-serif; }
+    textarea { min-height: 92px; resize: vertical; }
+    .lock-note { margin-top: 8px; font-size: 0.88rem; color: #94a3b8; }
+    .summary { background: #020617; border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    .summary-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .summary-row:last-child { margin-bottom: 0; }
+    .summary-total { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-weight: 700; color: #86efac; }
+    .pill { display: inline-flex; align-items: center; padding: 8px 12px; border-radius: 999px; background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(37, 99, 235, 0.26); color: #dbeafe; font-size: 0.88rem; font-weight: 700; margin-bottom: 16px; }
+    .status { min-height: 24px; margin-top: 12px; font-size: 0.92rem; font-weight: 700; }
+    .status.success { color: #86efac; }
+    .status.error { color: #fca5a5; }
+    .footer { max-width: var(--max-width); margin: 0 auto; padding: 0 20px 28px; color: var(--muted); text-align: center; font-size: 0.9rem; }
+    .version { display: block; margin-top: 8px; font-size: 0.84rem; color: #94a3b8; }
+    @media (max-width: 900px) { .grid, .locked-grid, .field-grid { grid-template-columns: 1fr; } .summary-row { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-wrap">
+      <div class="brand">4MyIPTV Service</div>
+      <nav class="nav-links" aria-label="Main Navigation">
+        <a href="index.html">Home</a>
+        <a href="sell-sheet.html">Sell Sheet</a>
+        <a href="checkout.html" class="active">Checkout</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-wrap">
+    <section class="hero">
+      <h1>Secure Checkout</h1>
+      <p>Review your approved order details below and complete your payment securely.</p>
+    </section>
+
+    <div class="grid">
+      <section>
+        <div class="card">
+          <div class="pill" id="paymentMethodPill">Payment Method: PayPal</div>
+          <h2>Approved Order</h2>
+          <p class="subhead">These details were prepared for your order. If anything looks incorrect, stop here and reach back out before paying.</p>
+          <div class="locked-grid">
+            <div class="locked-item"><div class="locked-label">Order ID</div><div id="displayOrderId" class="locked-value">-</div></div>
+            <div class="locked-item"><div class="locked-label">Approved Status</div><div id="displayStatus" class="locked-value">-</div></div>
+            <div class="locked-item"><div class="locked-label">Service</div><div id="displayService" class="locked-value">-</div></div>
+            <div class="locked-item"><div class="locked-label">Category</div><div id="displayCategory" class="locked-value">-</div></div>
+            <div class="locked-item"><div class="locked-label">Device</div><div id="displayDevice" class="locked-value">-</div></div>
+            <div class="locked-item"><div class="locked-label">Fulfillment</div><div id="displayFulfillment" class="locked-value">-</div></div>
+          </div>
+
+          <div class="field-grid" style="margin-top:16px;">
+            <div class="field full">
+              <label for="serviceDescription">Approved Description</label>
+              <textarea id="serviceDescription" readonly></textarea>
+              <div class="lock-note">This description is locked from your approved order details.</div>
+            </div>
+            <div class="field full">
+              <label for="approvedNotes">Order Notes</label>
+              <textarea id="approvedNotes" readonly></textarea>
+              <div class="lock-note">These notes are included for clarity only.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Customer Confirmation</h2>
+          <p class="subhead">Confirm your details before payment.</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="fullName">Full Name</label>
+              <input id="fullName" type="text" placeholder="Your full name" />
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" type="email" placeholder="you@example.com" />
+            </div>
+            <div class="field">
+              <label for="phone">Phone</label>
+              <input id="phone" type="text" placeholder="Phone number" />
+            </div>
+            <div class="field full">
+              <label for="customerNote">Optional Checkout Note</label>
+              <textarea id="customerNote" placeholder="Optional note for your order"></textarea>
+            </div>
+          </div>
+          <div id="status" class="status"></div>
+        </div>
+      </section>
+
+      <aside>
+        <div class="card">
+          <h2>Payment Summary</h2>
+          <div class="summary">
+            <div class="summary-row"><span>Service</span><strong id="sumService">-</strong></div>
+            <div class="summary-row"><span>Category</span><strong id="sumCategory">-</strong></div>
+            <div class="summary-row"><span>Device</span><strong id="sumDevice">-</strong></div>
+            <div class="summary-row"><span>Fulfillment</span><strong id="sumFulfillment">-</strong></div>
+            <div class="summary-row summary-total"><span>Total Due</span><strong id="sumTotal">$0.00</strong></div>
+          </div>
+          <div id="paypalSection">
+            <div id="paypal-button-container"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    4MyIPTV Service Checkout
+    <span class="version">Version 1.1 • Last Updated: April 6, 2026</span>
+  </footer>
+
+  <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqYVmQVKoEqH64X23hB2w0oXS-uQD8nAYwzS2S1jlOhFqqfxl4af-97grKFbAFe_7kMw/exec';
+    const CHECKOUT_SUCCESS_URL = new URL('checkout-success.html', window.location.href).href;
+
+    const approved = {
+      id: '', service: '', category: '', description: '', amount: 0, name: '', email: '', phone: '', device: '', fulfillment: '', notes: '', status: 'QUOTE READY', paymentMethod: 'PayPal', supportRoute: 'support.html'
+    };
+
+    function money(value) { return '$' + Number(value || 0).toFixed(2); }
+    function showStatus(msg, type) {
+      const box = document.getElementById('status');
+      box.className = 'status ' + type;
+      box.textContent = msg;
+    }
+    function getParams() {
+      const params = new URLSearchParams(window.location.search);
+      approved.id = params.get('id') || '';
+      approved.service = params.get('service') || '';
+      approved.category = params.get('category') || '';
+      approved.description = params.get('description') || '';
+      approved.amount = Number(params.get('amount') || 0);
+      approved.name = params.get('name') || '';
+      approved.email = params.get('email') || '';
+      approved.phone = params.get('phone') || '';
+      approved.device = params.get('device') || '';
+      approved.fulfillment = params.get('fulfillment') || '';
+      approved.notes = params.get('notes') || '';
+      approved.status = params.get('status') || 'QUOTE READY';
+      approved.paymentMethod = params.get('paymentMethod') || 'PayPal';
+      approved.supportRoute = params.get('supportRoute') || 'support.html';
+    }
+    function applyApprovedValues() {
+      document.getElementById('displayOrderId').textContent = approved.id || '-';
+      document.getElementById('displayStatus').textContent = approved.status || '-';
+      document.getElementById('displayService').textContent = approved.service || '-';
+      document.getElementById('displayCategory').textContent = approved.category || '-';
+      document.getElementById('displayDevice').textContent = approved.device || '-';
+      document.getElementById('displayFulfillment').textContent = approved.fulfillment || '-';
+      document.getElementById('serviceDescription').value = approved.description || '';
+      document.getElementById('approvedNotes').value = approved.notes || '';
+      document.getElementById('sumService').textContent = approved.service || '-';
+      document.getElementById('sumCategory').textContent = approved.category || '-';
+      document.getElementById('sumDevice').textContent = approved.device || '-';
+      document.getElementById('sumFulfillment').textContent = approved.fulfillment || '-';
+      document.getElementById('sumTotal').textContent = money(approved.amount);
+      document.getElementById('fullName').value = approved.name || '';
+      document.getElementById('email').value = approved.email || '';
+      document.getElementById('phone').value = approved.phone || '';
+      document.getElementById('paymentMethodPill').textContent = 'Payment Method: ' + approved.paymentMethod;
+    }
+    function validateApprovedOrder() {
+      if (!approved.id || !approved.service || approved.amount <= 0) {
+        showStatus('This checkout link is incomplete. Order ID, approved service, and amount are required.', 'error');
+        return false;
+      }
+      if (approved.paymentMethod !== 'PayPal') {
+        showStatus('This checkout page is configured for PayPal links only. Use the manual payment path in Admin Orders for other methods.', 'error');
+        return false;
+      }
+      return true;
+    }
+    function validateCustomerInfo() {
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      if (!fullName || !email || !phone) {
+        showStatus('Please confirm Full Name, Email, and Phone before payment.', 'error');
+        return false;
+      }
+      return true;
+    }
+    function buildUpdatePayload(paymentId) {
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const customerNote = document.getElementById('customerNote').value.trim();
+      const notes = [approved.notes, customerNote ? 'Customer Checkout Note: ' + customerNote : '', paymentId ? 'PayPal Transaction ID: ' + paymentId : '', fullName ? 'Confirmed Name: ' + fullName : '', email ? 'Confirmed Email: ' + email : '', phone ? 'Confirmed Phone: ' + phone : ''].filter(Boolean).join(' | ');
+      return new URLSearchParams({
+        action: 'updateOrder',
+        id: approved.id,
+        finalPlan: approved.service,
+        finalDevice: approved.device,
+        quoteAmount: Number(approved.amount).toFixed(2),
+        amountPaid: Number(approved.amount).toFixed(2),
+        balanceDue: '0.00',
+        paymentMethod: approved.paymentMethod,
+        paymentLink: window.location.href,
+        supportRoute: approved.supportRoute || 'support.html',
+        orderStatus: 'PAID',
+        paymentStatus: 'PAID',
+        notes
+      });
+    }
+    async function updateExistingOrder(paymentId) {
+      const payload = buildUpdatePayload(paymentId);
+      const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: payload, cache: 'no-store', redirect: 'follow' });
+      if (!response.ok) throw new Error('HTTP ' + response.status + ' returned from Apps Script.');
+      const result = await response.json();
+      if (!result || result.success !== true) throw new Error((result && result.message) ? result.message : 'Unknown save error.');
+      return result;
+    }
+    function renderPayPal() {
+      const container = document.getElementById('paypal-button-container');
+      container.innerHTML = '';
+      if (!validateApprovedOrder()) return;
+      if (!window.paypal) {
+        showStatus('PayPal failed to load. Please refresh and try again.', 'error');
+        return;
+      }
+      paypal.Buttons({
+        createOrder: function(data, actions) {
+          if (!validateCustomerInfo()) return Promise.reject(new Error('Validation failed'));
+          return actions.order.create({ purchase_units: [{ description: approved.service, amount: { currency_code: 'USD', value: Number(approved.amount).toFixed(2) } }] });
+        },
+        onApprove: async function(data, actions) {
+          try {
+            showStatus('Processing payment and updating your order...', '');
+            const details = await actions.order.capture();
+            await updateExistingOrder(details.id || '');
+            showStatus('Payment completed successfully. Redirecting...', 'success');
+            const successUrl = new URL(CHECKOUT_SUCCESS_URL);
+            successUrl.searchParams.set('orderId', approved.id);
+            successUrl.searchParams.set('amount', Number(approved.amount).toFixed(2));
+            window.location.href = successUrl.toString();
+          } catch (error) {
+            console.error(error);
+            showStatus('Payment completed, but the order update failed. Please contact support with your order ID.', 'error');
+          }
+        },
+        onError: function(err) {
+          console.error('PayPal error:', err);
+          showStatus('PayPal error. Please try again.', 'error');
+        }
+      }).render('#paypal-button-container');
+    }
+    getParams();
+    applyApprovedValues();
+  </script>
+  <script src="https://www.paypal.com/sdk/js?client-id=AWGNEkU-dS6LJz4eaNHNB93LP5SxnRc377VvcdF7BIVE8jYXiK2Banltv9Cr85F9jMQLp33GoOplY5yu&currency=USD"></script>
+  <script>renderPayPal();</script>
+</body>
+</html>
