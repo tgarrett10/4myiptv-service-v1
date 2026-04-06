@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service | Admin Orders</title>
   <!--
-    Version: 2.9
+    Version: 2.9.1
     Last Updated: 2026-04-06
     Change Notes:
     - Preserved the existing dark admin-orders style and live order table concept.
@@ -16,6 +16,7 @@
     - Kept the page as an internal admin control page, not a customer-facing page.
     - Updated the Apps Script endpoint to the current deployed /exec URL.
     - Changed admin saves from GET query string to POST form data for the update path only.
+    - Updated the Apps Script endpoint to the latest deployed /exec URL after debugging the admin save path.
   -->
   <style>
     :root {
@@ -1196,12 +1197,12 @@
 
     <div class="footer-strip">
       <strong>4MyIPTV Service • Admin Orders</strong>
-      <div class="version">Version 2.9 • Last Updated: April 6, 2026</div>
+      <div class="version">Version 2.9.1 • Last Updated: April 6, 2026</div>
     </div>
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxAAdJFkMuQG8bsckI-vtD4U44XVVc61-ukuPQwjuaA492CoynQxeWpvfzJ6F6_1eCtfQ/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqYVmQVKoEqH64X23hB2w0oXS-uQD8nAYwzS2S1jlOhFqqfxl4af-97grKFbAFe_7kMw/exec";
     const DRAFT_KEY_PREFIX = "iptv-order-draft-";
 
     const PLAN_PRICING = {
