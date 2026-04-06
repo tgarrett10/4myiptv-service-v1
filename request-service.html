@@ -1,55 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!--
+    File: request-service.html
+    Version: 1.5
+    Updated: 2026-04-06
+    Change Notes:
+    - Rebuilt the public request page to feel more inviting and confidence-building
+    - Added a clear pre-sale vs existing-customer support distinction without exposing paid-customer tools
+    - Added the 6 Months plan option and improved plan/device helper wording
+    - Clarified no-payment-yet messaging and stronger response timing expectations
+    - Kept the rebuild form structure and Apps Script flow intact while improving customer-facing copy
+  -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Request Service | 4MyIPTV Service</title>
-  <meta name="description" content="Request IPTV service, a preloaded device, renewal help, or support from 4MyIPTV Service." />
+  <meta name="description" content="Request IPTV service, device setup, a renewal, or customer support from 4MyIPTV Service." />
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --panel-2: #1f2937;
-      --line: #334155;
-      --text: #f8fafc;
-      --muted: #cbd5e1;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-      --danger: #dc2626;
-      --max-width: 1100px;
-      --radius: 10px;
+      --bg: #07101d;
+      --bg-2: #0a1628;
+      --panel: rgba(16, 32, 58, 0.94);
+      --panel-2: rgba(19, 40, 72, 0.96);
+      --field: #08111f;
+      --line: rgba(255,255,255,0.10);
+      --text: #f4f7fb;
+      --muted: #b8c4d8;
+      --primary: #2ec8ff;
+      --primary-dark: #149bc9;
+      --accent: #68f0c1;
+      --gold: #ffd166;
+      --primary-soft: rgba(46, 200, 255, 0.12);
+      --accent-soft: rgba(104, 240, 193, 0.10);
+      --warning-soft: rgba(255, 209, 102, 0.12);
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.30);
+      --radius: 18px;
+      --max: 1180px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.55;
+      background:
+        radial-gradient(circle at top left, rgba(46,200,255,0.16), transparent 22%),
+        radial-gradient(circle at top right, rgba(104,240,193,0.08), transparent 18%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
     }
 
-    .site-header {
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(8px);
+    .topbar {
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(7,16,29,0.86);
+      border-bottom: 1px solid var(--line);
     }
 
-    .nav-wrap {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 14px 20px;
+    .topbar-inner {
+      min-height: 78px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -57,112 +76,195 @@
       flex-wrap: wrap;
     }
 
-    .brand {
-      font-size: 1.1rem;
-      font-weight: 700;
-      white-space: nowrap;
+    .brand-title {
+      font-size: 1.08rem;
+      font-weight: 800;
     }
 
-    .nav-links {
+    .brand-sub {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 2px;
+    }
+
+    .nav-actions {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
-    .nav-links a {
-      padding: 8px 12px;
-      border-radius: 8px;
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 12px;
+      font-weight: 700;
       color: var(--muted);
-      transition: background 0.2s ease, color 0.2s ease;
+      border: 1px solid transparent;
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
     }
 
-    .nav-links a:hover,
-    .nav-links a.active {
-      background: rgba(255,255,255,0.08);
+    .nav-link:hover,
+    .nav-link.active {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--line);
       color: var(--text);
-    }
-
-    .page-wrap {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 40px 20px 60px;
+      transform: translateY(-1px);
     }
 
     .hero {
-      text-align: center;
-      margin-bottom: 22px;
+      padding: 56px 0 22px;
     }
 
-    .hero h1 {
+    .hero-shell,
+    .panel,
+    .form-shell,
+    .cta-band {
+      background: linear-gradient(180deg, rgba(19,40,72,0.94), rgba(9,20,37,0.98));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-shell {
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-shell::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      bottom: -90px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(46,200,255,0.18) 0%, rgba(46,200,255,0) 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      border: 1px solid rgba(46,200,255,0.24);
+      color: #d9f7ff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    h1 {
       margin: 0 0 10px;
-      font-size: 2rem;
-      line-height: 1.15;
+      font-size: clamp(2.1rem, 4vw, 3.45rem);
+      line-height: 1.06;
+      letter-spacing: -0.8px;
+      max-width: 12ch;
     }
 
-    .hero p {
-      margin: 0 auto;
-      max-width: 760px;
+    .tagline {
+      margin: 0 0 16px;
+      color: #dff9ff;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.95rem;
+    }
+
+    .lead {
+      margin: 0;
       color: var(--muted);
-      font-size: 1rem;
+      max-width: 66ch;
+      font-size: 1.08rem;
     }
 
     .hero-note {
-      margin-top: 12px;
-      color: var(--muted);
+      margin-top: 18px;
+      color: #dbeafe;
       font-size: 0.94rem;
     }
 
-    .info-strip {
-      background: rgba(17, 24, 39, 0.94);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 18px 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    .hero-note strong { color: #ffffff; }
+
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .form-grid {
+      display: grid;
+      gap: 18px;
     }
 
-    .info-strip-title {
-      margin: 0 0 8px;
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card,
+    .info-card,
+    .reassurance-card {
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255,255,255,0.03);
+      padding: 18px;
+    }
+
+    .info-card strong,
+    .reassurance-card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
       font-size: 1rem;
-      font-weight: 700;
     }
 
-    .info-strip-list {
+    .info-card p,
+    .reassurance-card p,
+    .info-card li,
+    .reassurance-card li {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .info-card ul,
+    .reassurance-card ul {
       margin: 0;
       padding-left: 18px;
+    }
+
+    .info-card li + li,
+    .reassurance-card li + li {
+      margin-top: 8px;
+    }
+
+    section {
+      padding: 18px 0 12px;
+    }
+
+    .section-head {
+      margin-bottom: 18px;
+    }
+
+    .section-head h2 {
+      margin: 0 0 8px;
+      font-size: clamp(1.55rem, 3vw, 2.2rem);
+      letter-spacing: -0.4px;
+    }
+
+    .section-head p {
+      margin: 0;
       color: var(--muted);
-      font-size: 0.94rem;
+      max-width: 70ch;
     }
 
-    .info-strip-list li {
-      margin-bottom: 6px;
-    }
-
-    .form-card {
-      background: rgba(17, 24, 39, 0.94);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    }
-
-    .section-title {
-      margin: 0 0 14px;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .form-section + .form-section {
-      margin-top: 28px;
-      padding-top: 24px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+    .panel,
+    .form-shell,
+    .cta-band {
+      padding: 26px;
     }
 
     .field {
@@ -185,25 +287,25 @@
     select,
     textarea {
       width: 100%;
-      background: var(--panel-2);
+      background: var(--field);
       color: var(--text);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+      padding: 13px 14px;
       font-size: 0.95rem;
       outline: none;
     }
 
     input::placeholder,
     textarea::placeholder {
-      color: #94a3b8;
+      color: #8fa2be;
     }
 
     input:focus,
     select:focus,
     textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+      border-color: rgba(46,200,255,0.70);
+      box-shadow: 0 0 0 3px rgba(46,200,255,0.14);
     }
 
     textarea {
@@ -217,344 +319,482 @@
       font-size: 0.88rem;
     }
 
-    .dynamic-helper {
-      margin-top: 12px;
-      background: rgba(37, 99, 235, 0.12);
-      border: 1px solid rgba(37, 99, 235, 0.28);
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: #dbeafe;
-      font-size: 0.92rem;
-    }
-
-    .reassurance-box {
-      margin-top: 18px;
-      background: rgba(31, 41, 55, 0.75);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 16px;
-    }
-
-    .reassurance-box h3 {
-      margin: 0 0 10px;
-      font-size: 0.98rem;
-    }
-
-    .reassurance-box ul {
-      margin: 0;
-      padding-left: 18px;
-      color: var(--muted);
+    .dynamic-helper,
+    .public-rule,
+    .timing-banner {
+      border-radius: 14px;
+      padding: 14px 16px;
       font-size: 0.93rem;
     }
 
-    .reassurance-box li {
-      margin-bottom: 8px;
+    .dynamic-helper {
+      margin-top: 18px;
+      background: rgba(46,200,255,0.10);
+      border: 1px solid rgba(46,200,255,0.26);
+      color: #d9f7ff;
+    }
+
+    .public-rule {
+      background: var(--warning-soft);
+      border: 1px solid rgba(255,209,102,0.24);
+      color: #fff1c4;
+    }
+
+    .timing-banner {
+      background: var(--accent-soft);
+      border: 1px solid rgba(104,240,193,0.22);
+      color: #dffcf1;
+      margin-top: 18px;
     }
 
     .status-box {
       display: none;
       margin-top: 18px;
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 12px 14px;
       font-size: 0.94rem;
     }
 
-    .status-box.show {
-      display: block;
-    }
+    .status-box.show { display: block; }
 
     .status-box.error {
-      background: rgba(220, 38, 38, 0.16);
-      border: 1px solid rgba(220, 38, 38, 0.4);
+      background: rgba(220,38,38,0.16);
+      border: 1px solid rgba(220,38,38,0.40);
       color: #fecaca;
     }
 
     .submit-wrap {
       margin-top: 26px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .submit-copy {
+      color: var(--muted);
+      font-size: 0.92rem;
+      max-width: 48ch;
+    }
+
+    .submit-btn,
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      padding: 0 22px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 800;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
       text-align: center;
     }
 
-    .submit-btn {
-      border: 0;
-      background: var(--accent);
-      color: #fff;
-      padding: 14px 24px;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      min-width: 220px;
-      transition: background 0.2s ease, transform 0.2s ease;
+    .submit-btn:hover,
+    .cta-btn:hover { transform: translateY(-1px); }
+
+    .submit-btn,
+    .cta-btn.primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #04111c;
     }
 
-    .submit-btn:hover {
-      background: var(--accent-hover);
+    .cta-btn.secondary {
+      background: rgba(255,255,255,0.03);
+      border-color: var(--line);
+      color: var(--text);
     }
 
     .submit-btn:disabled {
-      opacity: 0.7;
+      opacity: 0.72;
       cursor: not-allowed;
       transform: none;
     }
 
-    .timing-note {
-      text-align: center;
-      margin-top: 16px;
+    .cta-band {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .cta-band h2 {
+      margin: 0 0 8px;
+      font-size: 1.8rem;
+    }
+
+    .cta-band p {
+      margin: 0;
       color: var(--muted);
-      font-size: 0.92rem;
+      max-width: 60ch;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .site-footer {
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding: 22px 20px 28px;
-      text-align: center;
+      padding: 28px 0 36px;
       color: var(--muted);
+      text-align: center;
       font-size: 0.92rem;
     }
 
     .version {
       display: block;
       margin-top: 8px;
-      font-size: 0.85rem;
-      color: #94a3b8;
+      font-size: 0.84rem;
+      color: #8fa2be;
     }
 
-    @media (max-width: 800px) {
-      .grid {
+    @media (max-width: 900px) {
+      .grid-3,
+      .grid-4,
+      .form-grid,
+      .grid-2 {
         grid-template-columns: 1fr;
       }
 
-      .form-card {
-        padding: 22px 18px;
+      .hero-shell,
+      .panel,
+      .form-shell,
+      .cta-band {
+        padding: 22px;
       }
 
-      .hero h1 {
-        font-size: 1.7rem;
+      .submit-wrap {
+        flex-direction: column;
+        align-items: stretch;
       }
 
-      .submit-btn {
+      .submit-btn,
+      .cta-btn,
+      .nav-link {
+        width: 100%;
+      }
+
+      .nav-actions {
         width: 100%;
       }
     }
   </style>
 </head>
 <body>
-  <!--
-    Page: request-service.html
-    Version: 1.3
-    Change Notes:
-    - Improved customer guidance
-    - Added category-based helper messaging
-    - Moved response timing higher
-    - Clarified next-step expectations
-    - Tightened request flow wording
-    - Updated Apps Script endpoint to current live web app
-  -->
-
-  <header class="site-header">
-    <div class="nav-wrap">
-      <div class="brand">4MyIPTV Service</div>
-      <nav class="nav-links" aria-label="Main Navigation">
-        <a href="index.html">Home</a>
-        <a href="request-service.html" class="active">Request Service</a>
-        <a href="success.html">Success</a>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div>
+        <div class="brand-title">4MyIPTV Service</div>
+        <div class="brand-sub">Stream More • Pay Less • Watch Anywhere</div>
+      </div>
+      <nav class="nav-actions" aria-label="Main Navigation">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="sell-sheet.html">Plans &amp; Devices</a>
+        <a class="nav-link active" href="request-service.html">Request Service</a>
       </nav>
     </div>
   </header>
 
-  <main class="page-wrap">
+  <main>
     <section class="hero">
-      <h1>Request Service</h1>
-      <p>
-        Tell us what you need and we will follow up with the right next step for service,
-        setup, support, or device options.
-      </p>
-      <div class="hero-note">
-        Most responses are sent within a few hours and no later than 24 hours EST.
+      <div class="container">
+        <div class="hero-shell">
+          <div class="eyebrow">Request Service</div>
+          <div class="tagline">Stream More • Pay Less • Watch Anywhere</div>
+          <h1>Tell Us What You Need</h1>
+          <p class="lead">
+            Request online service, a prepared device, a renewal, or help with an existing setup.
+            This page is designed to make the next step clear without asking you to pay before your path is confirmed.
+          </p>
+          <div class="hero-note">
+            <strong>Most responses are sent within a few hours and no later than 24 hours EST.</strong>
+            If you are not sure which plan or setup is right for you, use this form and we will help you choose.
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="info-strip" aria-label="What this form is for">
-      <h2 class="info-strip-title">Use this form for:</h2>
-      <ul class="info-strip-list">
-        <li>Online service</li>
-        <li>Preloaded devices</li>
-        <li>Renewals</li>
-        <li>Support help</li>
-      </ul>
+    <section>
+      <div class="container">
+        <div class="grid-3">
+          <div class="info-card">
+            <strong>New Service Requests</strong>
+            <p>
+              Use this page to request service only, a device with service, or help deciding which option fits your setup best.
+            </p>
+          </div>
+          <div class="info-card">
+            <strong>Renewals and Existing Customers</strong>
+            <p>
+              Existing customers can also use this form for renewals and support requests without needing to search through the site.
+            </p>
+          </div>
+          <div class="info-card">
+            <strong>Quote First, Payment Later</strong>
+            <p>
+              You can submit your request here and receive the right next step before any payment link is sent.
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="form-card">
-      <form id="requestServiceForm" novalidate>
-        <div class="form-section">
-          <h2 class="section-title">Contact Information</h2>
-          <div class="grid">
-            <div class="field">
-              <label for="customerName">Full Name</label>
-              <input type="text" id="customerName" name="customerName" placeholder="Enter your full name" required />
-            </div>
-
-            <div class="field">
-              <label for="phoneNumber">Phone Number</label>
-              <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter your phone number" required />
-            </div>
-
-            <div class="field">
-              <label for="emailAddress">Email Address</label>
-              <input type="email" id="emailAddress" name="emailAddress" placeholder="Enter your email address" required />
-            </div>
-
-            <div class="field">
-              <label for="preferredContactMethod">Best Way to Reach You</label>
-              <select id="preferredContactMethod" name="preferredContactMethod" required>
-                <option value="">Select one</option>
-                <option value="Text">Text</option>
-                <option value="Email">Email</option>
-                <option value="Phone">Phone</option>
-              </select>
-            </div>
+    <section>
+      <div class="container panel">
+        <div class="section-head">
+          <h2>What This Public Page Covers</h2>
+          <p>
+            This page is for pre-sale questions, service requests, renewals, and existing-customer help.
+            Paid-customer download tools and re-download resources are shared separately after service is confirmed.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="reassurance-card">
+            <strong>Pre-Sale Help</strong>
+            <ul>
+              <li>Questions before ordering</li>
+              <li>Help choosing the right plan or device</li>
+              <li>Quotes for service and prepared devices</li>
+            </ul>
+          </div>
+          <div class="reassurance-card">
+            <strong>Existing-Customer Help</strong>
+            <ul>
+              <li>Renewal requests</li>
+              <li>Support questions and troubleshooting</li>
+              <li>Customer-only tools shared after your request is reviewed</li>
+            </ul>
           </div>
         </div>
+      </div>
+    </section>
 
-        <div class="form-section">
-          <h2 class="section-title">Request Details</h2>
-          <div class="grid">
-            <div class="field">
-              <label for="orderCategory">What do you need help with?</label>
-              <select id="orderCategory" name="orderCategory" required>
-                <option value="">Select one</option>
-                <option value="Online Service Only">Online Service Only</option>
-                <option value="Device + Service">Device + Service</option>
-                <option value="Device Only">Device Only</option>
-                <option value="Renewal">Renewal</option>
-                <option value="Support Request">Support Request</option>
-              </select>
+    <section>
+      <div class="container form-shell">
+        <div class="section-head">
+          <h2>Service Request Form</h2>
+          <p>
+            Complete the form below so we can review your request, confirm the right service or device path,
+            and follow up with the next step that fits your situation.
+          </p>
+        </div>
+
+        <div class="public-rule">
+          This page does not expose paid-customer APK links or re-download tools publicly. Existing customers can still request help here, and the right follow-up will be shared after review.
+        </div>
+
+        <div class="timing-banner">
+          Prepared device orders typically ship within 24 to 48 hours by 2-day FedEx, with tracking provided after shipment. Service-only requests usually receive setup details within 24 hours once approved.
+        </div>
+
+        <form id="requestServiceForm" novalidate>
+          <section>
+            <div class="section-head">
+              <h2>Contact Information</h2>
+              <p>Tell us how to reach you so the correct quote or next step gets back to you quickly.</p>
             </div>
-
-            <div class="field">
-              <label for="servicePlanRequested">Which plan are you interested in?</label>
-              <select id="servicePlanRequested" name="servicePlanRequested" required>
-                <option value="">Select one</option>
-                <option value="Monthly">Monthly</option>
-                <option value="Yearly">Yearly</option>
-                <option value="Two Years">Two Years</option>
-                <option value="Not Sure">Not Sure</option>
-              </select>
+            <div class="form-grid">
+              <div class="field">
+                <label for="customerName">Full Name</label>
+                <input type="text" id="customerName" name="customerName" placeholder="Enter your full name" required />
+              </div>
+              <div class="field">
+                <label for="phoneNumber">Phone Number</label>
+                <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter your phone number" required />
+              </div>
+              <div class="field">
+                <label for="emailAddress">Email Address</label>
+                <input type="email" id="emailAddress" name="emailAddress" placeholder="Enter your email address" required />
+              </div>
+              <div class="field">
+                <label for="preferredContactMethod">Best Way to Reach You</label>
+                <select id="preferredContactMethod" name="preferredContactMethod" required>
+                  <option value="">Select one</option>
+                  <option value="Text">Text</option>
+                  <option value="Email">Email</option>
+                  <option value="Phone">Phone</option>
+                  <option value="Email or Text">Email or Text</option>
+                </select>
+              </div>
             </div>
+          </section>
 
-            <div class="field">
-              <label for="deviceRequested">Which device do you want?</label>
-              <select id="deviceRequested" name="deviceRequested" required>
-                <option value="">Select one</option>
-                <option value="None">None</option>
-                <option value="onn 4K">onn 4K</option>
-                <option value="onn 4K Plus">onn 4K Plus</option>
-                <option value="onn 4K Pro">onn 4K Pro</option>
-                <option value="Google TV Streamer 4K">Google TV Streamer 4K</option>
-                <option value="NVIDIA Shield TV Pro">NVIDIA Shield TV Pro</option>
-                <option value="Android TV Box (Amazon)">Android TV Box (Amazon)</option>
-                <option value="Not Sure">Not Sure</option>
-              </select>
-              <div class="helper">
-                For online-only service or renewal requests, device selection can stay on None.
+          <section>
+            <div class="section-head">
+              <h2>Request Details</h2>
+              <p>Choose the closest option so we can follow up faster and guide you to the right next step.</p>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label for="orderCategory">What do you need help with?</label>
+                <select id="orderCategory" name="orderCategory" required>
+                  <option value="">Select one</option>
+                  <option value="Online Service Only">Online Service Only</option>
+                  <option value="Device + Service">Device + Service</option>
+                  <option value="Device Only">Device Only</option>
+                  <option value="Renewal">Renewal</option>
+                  <option value="Existing Customer Support">Existing Customer Support</option>
+                  <option value="Help Me Choose">Help Me Choose</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="servicePlanRequested">Which plan are you interested in?</label>
+                <select id="servicePlanRequested" name="servicePlanRequested" required>
+                  <option value="">Select one</option>
+                  <option value="Monthly">Monthly</option>
+                  <option value="6 Months">6 Months</option>
+                  <option value="1 Year">1 Year</option>
+                  <option value="2 Years">2 Years</option>
+                  <option value="Not Sure">Not Sure</option>
+                </select>
+                <div class="helper">
+                  Monthly is a good way to test your setup first, then renew for a longer plan if you love the service.
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="deviceRequested">Which device interests you most?</label>
+                <select id="deviceRequested" name="deviceRequested" required>
+                  <option value="">Select one</option>
+                  <option value="None">None</option>
+                  <option value="onn 4K">onn 4K</option>
+                  <option value="onn 4K Plus">onn 4K Plus</option>
+                  <option value="onn 4K Pro">onn 4K Pro</option>
+                  <option value="Google TV Streamer 4K">Google TV Streamer 4K</option>
+                  <option value="NVIDIA Shield TV Pro">NVIDIA Shield TV Pro</option>
+                  <option value="Android 14 Streaming Box">Android 14 Streaming Box</option>
+                  <option value="Not Sure">Not Sure</option>
+                </select>
+                <div class="helper">
+                  For service-only, renewal, or support requests, this can stay on None.
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="quantity">How many devices do you need?</label>
+                <select id="quantity" name="quantity" required>
+                  <option value="">Select one</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5+">5+</option>
+                </select>
               </div>
             </div>
 
-            <div class="field">
-              <label for="quantity">How many do you need?</label>
-              <select id="quantity" name="quantity" required>
-                <option value="">Select one</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5+">5+</option>
-              </select>
+            <div id="categoryHelper" class="dynamic-helper">
+              Select a request type to see the best path for new service, device orders, renewals, or existing-customer support.
             </div>
-          </div>
+          </section>
 
-          <div id="categoryHelper" class="dynamic-helper">
-            Select a request type to see the best path for online service, device orders, renewals, or support.
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h2 class="section-title">Delivery and Setup</h2>
-          <div class="grid">
-            <div class="field">
-              <label for="locationDeliveryArea">City, State or ZIP Code</label>
-              <input type="text" id="locationDeliveryArea" name="locationDeliveryArea" placeholder="Enter your city, state, or ZIP code" required />
+          <section>
+            <div class="section-head">
+              <h2>Delivery and Setup</h2>
+              <p>Let us know where you are and what kind of setup path you expect.</p>
             </div>
+            <div class="form-grid">
+              <div class="field">
+                <label for="locationDeliveryArea">City, State or ZIP Code</label>
+                <input type="text" id="locationDeliveryArea" name="locationDeliveryArea" placeholder="Enter your city, state, or ZIP code" required />
+              </div>
 
-            <div class="field">
-              <label for="shippingNeeded">Do you need shipping?</label>
-              <select id="shippingNeeded" name="shippingNeeded" required>
-                <option value="">Select one</option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-                <option value="Not Sure">Not Sure</option>
-              </select>
+              <div class="field">
+                <label for="shippingNeeded">Do you need shipping?</label>
+                <select id="shippingNeeded" name="shippingNeeded" required>
+                  <option value="">Select one</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                  <option value="Not Sure">Not Sure</option>
+                </select>
+              </div>
+
+              <div class="field full">
+                <label for="setupType">What type of setup do you need?</label>
+                <select id="setupType" name="setupType" required>
+                  <option value="">Select one</option>
+                  <option value="Online setup">Online setup</option>
+                  <option value="Prepared device">Prepared device</option>
+                  <option value="In-person setup">In-person setup</option>
+                  <option value="Not Sure">Not Sure</option>
+                </select>
+              </div>
             </div>
+          </section>
 
-            <div class="field full">
-              <label for="setupType">What type of setup do you need?</label>
-              <select id="setupType" name="setupType" required>
-                <option value="">Select one</option>
-                <option value="Online setup">Online setup</option>
-                <option value="Preloaded device">Preloaded device</option>
-                <option value="In-person setup">In-person setup</option>
-                <option value="Not Sure">Not Sure</option>
-              </select>
+          <section>
+            <div class="section-head">
+              <h2>Additional Notes</h2>
+              <p>Use this space for timing needs, current setup details, support issues, or anything else that will help us respond correctly.</p>
             </div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h2 class="section-title">Additional Notes</h2>
-          <div class="grid">
             <div class="field full">
               <label for="customerRequestNotes">Additional Notes</label>
-              <textarea
-                id="customerRequestNotes"
-                name="customerRequestNotes"
-                placeholder="Add any questions, timing needs, device preferences, current setup details, or support issue details here."
-              ></textarea>
+              <textarea id="customerRequestNotes" name="customerRequestNotes" placeholder="Add any questions, timing needs, device preferences, current setup details, or support issue details here."></textarea>
               <div class="helper">
-                Include anything important here, especially support issues, renewal details, timing needs, or device preferences.
+                For support requests, include the issue, the device or app involved, and anything you already tried.
               </div>
             </div>
+          </section>
+
+          <section>
+            <div class="grid-3">
+              <div class="reassurance-card">
+                <strong>After You Submit</strong>
+                <p>We review your request and follow up with the right quote, guidance, or next step.</p>
+              </div>
+              <div class="reassurance-card">
+                <strong>No Pressure at This Step</strong>
+                <p>No payment link is sent until your service, device, or support path is clear.</p>
+              </div>
+              <div class="reassurance-card">
+                <strong>Public-Safe by Design</strong>
+                <p>This page helps both new and existing customers without exposing paid-customer-only download resources publicly.</p>
+              </div>
+            </div>
+          </section>
+
+          <div id="formError" class="status-box error" role="alert" aria-live="polite"></div>
+
+          <div class="submit-wrap">
+            <div class="submit-copy">
+              Most requests receive a response within a few hours and no later than 24 hours EST. Existing-customer download or re-download help is shared after your request is reviewed.
+            </div>
+            <button type="submit" id="submitBtn" class="submit-btn">Send Request</button>
           </div>
-        </div>
+        </form>
+      </div>
+    </section>
 
-        <div class="reassurance-box">
-          <h3>After you submit</h3>
-          <ul>
-            <li>We review your request</li>
-            <li>We follow up with the right next step</li>
-            <li>Payment is only requested when your order path is confirmed</li>
-          </ul>
+    <section>
+      <div class="container cta-band">
+        <div>
+          <h2>Need to Review Plans First?</h2>
+          <p>
+            You can compare plans, devices, and setup paths first, then come back here once you know which direction fits best.
+          </p>
         </div>
-
-        <div id="formError" class="status-box error" role="alert" aria-live="polite"></div>
-
-        <div class="submit-wrap">
-          <button type="submit" id="submitBtn" class="submit-btn">Send Request</button>
+        <div class="cta-actions">
+          <a class="cta-btn secondary" href="sell-sheet.html">View Plans &amp; Devices</a>
+          <a class="cta-btn primary" href="index.html">Back to Home</a>
         </div>
-
-        <div class="timing-note">
-          Most responses are sent within a few hours and no later than 24 hours EST.
-        </div>
-      </form>
+      </div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div>4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</div>
-    <span class="version">Version 1.4</span>
+    <span class="version">Version 1.5</span>
   </footer>
 
   <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqYVmQVKoEqH64X23hB2w0oXS-uQD8nAYwzS2S1jlOhFqqfxl4af-97grKFbAFe_7kMw/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqYVmQVKoEqH64X23hB2w0oXS-uQD8nAYwzS2S1jlOhFqqfxl4af-97grKFbAFe_7kMw/exec';
 
     const form = document.getElementById('requestServiceForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -566,6 +806,7 @@
     const shippingNeeded = document.getElementById('shippingNeeded');
     const quantity = document.getElementById('quantity');
     const setupType = document.getElementById('setupType');
+    const servicePlanRequested = document.getElementById('servicePlanRequested');
 
     function showError(message) {
       errorBox.textContent = message;
@@ -581,26 +822,36 @@
       const category = orderCategory.value;
 
       if (category === 'Online Service Only') {
-        categoryHelper.textContent = 'Online service requests do not require a device selection or shipping. The form will set those for you.';
+        categoryHelper.textContent = 'Online service requests do not require a device or shipping. Choose the plan you want and we will follow up with the right next step.';
+        return;
+      }
+
+      if (category === 'Device + Service') {
+        categoryHelper.textContent = 'Choose the device, quantity, and shipping need so we can quote the full path faster. Prepared device orders typically ship by 2-day FedEx with tracking.';
+        return;
+      }
+
+      if (category === 'Device Only') {
+        categoryHelper.textContent = 'Device-only requests should include the device, quantity, and shipping need. Use the notes box for any setup preferences.';
         return;
       }
 
       if (category === 'Renewal') {
-        categoryHelper.textContent = 'Renewal requests will be treated as one renewal by default. Add any important account details in the notes box.';
+        categoryHelper.textContent = 'Renewal requests can be submitted here without exposing customer-only tools publicly. Add any helpful account or timing details in the notes box.';
         return;
       }
 
-      if (category === 'Support Request') {
-        categoryHelper.textContent = 'Support requests should include the issue, current setup, and anything already tried in the notes box.';
+      if (category === 'Existing Customer Support') {
+        categoryHelper.textContent = 'Existing customers can request troubleshooting help here. If a re-download or customer-only tool is needed, it will be shared after your request is reviewed.';
         return;
       }
 
-      if (category === 'Device + Service' || category === 'Device Only') {
-        categoryHelper.textContent = 'For device requests, choose the closest device option, quantity, shipping need, and setup type so we can follow up faster.';
+      if (category === 'Help Me Choose') {
+        categoryHelper.textContent = 'Use this option if you want guidance before deciding. Tell us whether you care most about price, simplicity, storage, streaming quality, or device performance.';
         return;
       }
 
-      categoryHelper.textContent = 'Select a request type to see the best path for online service, device orders, renewals, or support.';
+      categoryHelper.textContent = 'Select a request type to see the best path for new service, device orders, renewals, or existing-customer support.';
     }
 
     function applySmartDefaults() {
@@ -609,6 +860,7 @@
       if (category === 'Online Service Only') {
         deviceRequested.value = 'None';
         shippingNeeded.value = 'No';
+        quantity.value = '1';
 
         if (!setupType.value || setupType.value === 'Not Sure') {
           setupType.value = 'Online setup';
@@ -617,10 +869,44 @@
 
       if (category === 'Renewal') {
         deviceRequested.value = 'None';
+        shippingNeeded.value = 'No';
         quantity.value = '1';
 
         if (!setupType.value || setupType.value === 'Not Sure') {
           setupType.value = 'Online setup';
+        }
+      }
+
+      if (category === 'Existing Customer Support') {
+        if (!deviceRequested.value) {
+          deviceRequested.value = 'None';
+        }
+        if (!shippingNeeded.value) {
+          shippingNeeded.value = 'No';
+        }
+        if (!quantity.value) {
+          quantity.value = '1';
+        }
+        if (!setupType.value || setupType.value === 'Not Sure') {
+          setupType.value = 'Online setup';
+        }
+        if (!servicePlanRequested.value) {
+          servicePlanRequested.value = 'Not Sure';
+        }
+      }
+
+      if (category === 'Help Me Choose') {
+        if (!deviceRequested.value) {
+          deviceRequested.value = 'Not Sure';
+        }
+        if (!shippingNeeded.value) {
+          shippingNeeded.value = 'Not Sure';
+        }
+        if (!setupType.value) {
+          setupType.value = 'Not Sure';
+        }
+        if (!servicePlanRequested.value) {
+          servicePlanRequested.value = 'Not Sure';
         }
       }
 
