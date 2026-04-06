@@ -3,19 +3,18 @@
 <head>
   <!--
     File: request-service.html
-    Version: 1.6
+    Version: 1.8
     Updated: 2026-04-06
     Change Notes:
-    - Removed the internal APK/public-tools notice box from the form area
-    - Added dynamic plan messaging so Monthly, 1 Year, and 2 Years each frame the offer more clearly
-    - Added dynamic device messaging for onn 4K Plus and NVIDIA Shield TV Pro
-    - Tightened the public support language to stay customer-facing
-    - Kept the rebuild form structure and Apps Script flow intact while refining the request-page messaging
+    - Renamed the page as Request Service & Support to make it the single public intake page
+    - Rewrote key sections so pre-purchase questions are handled through the notes field and preferred contact method
+    - Replaced remaining internal-sounding reassurance text with customer-facing language
+    - Kept the rebuild form structure, Apps Script flow, and dynamic helper messaging intact
   -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Request Service | 4MyIPTV Service</title>
-  <meta name="description" content="Request IPTV service, device setup, a renewal, or customer support from 4MyIPTV Service." />
+  <title>Request Service & Support | 4MyIPTV Service</title>
+  <meta name="description" content="Request IPTV service, a prepared device, a renewal, or support from 4MyIPTV Service." />
   <style>
     :root {
       --bg: #07101d;
@@ -496,7 +495,7 @@
       <nav class="nav-actions" aria-label="Main Navigation">
         <a class="nav-link" href="index.html">Home</a>
         <a class="nav-link" href="sell-sheet.html">Plans &amp; Devices</a>
-        <a class="nav-link active" href="request-service.html">Request Service</a>
+        <a class="nav-link active" href="request-service.html">Request Service &amp; Support</a>
       </nav>
     </div>
   </header>
@@ -505,16 +504,16 @@
     <section class="hero">
       <div class="container">
         <div class="hero-shell">
-          <div class="eyebrow">Request Service</div>
+          <div class="eyebrow">Request Service &amp; Support</div>
           <div class="tagline">Stream More • Pay Less • Watch Anywhere</div>
-          <h1>Tell Us What You Need</h1>
+          <h1>Request Service &amp; Support</h1>
           <p class="lead">
             Request online service, a prepared device, a renewal, or help with an existing setup.
-            This page is designed to make the next step clear without asking you to pay before your path is confirmed.
+            If you have questions before you buy, add them in the notes section and we will follow up using your preferred contact method.
           </p>
           <div class="hero-note">
             <strong>Most responses are sent within a few hours and no later than 24 hours EST.</strong>
-            If you are not sure which plan or setup is right for you, use this form and we will help you choose.
+            If you are not sure which plan or setup is right for you, use this form and tell us what you need help with.
           </div>
         </div>
       </div>
@@ -548,9 +547,9 @@
     <section>
       <div class="container panel">
         <div class="section-head">
-          <h2>Help Before and After You Start</h2>
+          <h2>One Place to Get Started</h2>
           <p>
-            Use this page to request service, ask questions, renew your plan, or get help as an existing customer.
+            Use this page to request service, ask questions before you buy, renew your plan, or get help as an existing customer.
             We will review your request and send the right next step based on what you need.
           </p>
         </div>
@@ -578,10 +577,10 @@
     <section>
       <div class="container form-shell">
         <div class="section-head">
-          <h2>Service Request Form</h2>
+          <h2>Service &amp; Support Request Form</h2>
           <p>
             Complete the form below so we can review your request, confirm the right service or device path,
-            and follow up with the next step that fits your situation.
+            and follow up using the contact method you prefer. If you have pre-purchase questions, include them in the notes section.
           </p>
         </div>
 
@@ -729,7 +728,7 @@
           <section>
             <div class="section-head">
               <h2>Additional Notes</h2>
-              <p>Use this space for timing needs, current setup details, support issues, or anything else that will help us respond correctly.</p>
+              <p>Use this space for pre-purchase questions, timing needs, current setup details, support issues, or anything else that will help us respond correctly.</p>
             </div>
             <div class="field full">
               <label for="customerRequestNotes">Additional Notes</label>
@@ -751,8 +750,8 @@
                 <p>No payment link is sent until your service, device, or support path is clear.</p>
               </div>
               <div class="reassurance-card">
-                <strong>Public-Safe by Design</strong>
-                <p>This page helps both new and existing customers without exposing paid-customer-only download resources publicly.</p>
+                <strong>Questions Welcome</strong>
+                <p>If you are not ready yet or need help deciding, use the notes box and we will follow up based on the contact method you selected.</p>
               </div>
             </div>
           </section>
@@ -761,7 +760,7 @@
 
           <div class="submit-wrap">
             <div class="submit-copy">
-              Most requests receive a response within a few hours and no later than 24 hours EST. Existing-customer download or re-download help is shared after your request is reviewed.
+              Most requests receive a response within a few hours and no later than 24 hours EST. We will follow up using the contact method you selected, and any customer-only next steps are shared after your request is reviewed.
             </div>
             <button type="submit" id="submitBtn" class="submit-btn">Send Request</button>
           </div>
@@ -787,7 +786,7 @@
 
   <footer class="site-footer">
     <div>4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</div>
-    <span class="version">Version 1.7</span>
+    <span class="version">Version 1.8</span>
   </footer>
 
   <script>
