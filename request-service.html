@@ -550,7 +550,7 @@
 
   <footer class="site-footer">
     <div>4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</div>
-    <span class="version">Version 1.3</span>
+    <span class="version">Version 1.4</span>
   </footer>
 
   <script>
@@ -646,6 +646,8 @@
       applySmartDefaults();
 
       const payload = new URLSearchParams(new FormData(form));
+      payload.set('action', 'createOrder');
+      payload.set('orderType', 'Request Service');
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
@@ -660,7 +662,7 @@
           body: payload.toString()
         });
 
-        window.location.href = 'success.html';
+        window.location.href = 'success.html?source=request';
       } catch (error) {
         showError('Your request could not be submitted right now. Please try again in a moment.');
         submitBtn.disabled = false;
