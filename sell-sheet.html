@@ -3,17 +3,17 @@
 <head>
   <!--
     File: sell-sheet.html
-    Version: 2.0
-    Updated: 2026-04-05
+    Version: 2.1
+    Updated: 2026-04-06
     Change Notes:
-    - Rebuilt as a real sales page with stronger contrast and card layout
-    - Added service pricing, device pricing, best-for guidance, setup inclusions, value sections, and repeated CTA blocks
-    - Added recommended callout on the main value device and improved scanability for sales conversations
+    - Reworked the sales page to lead with value before plans and devices
+    - Added the 6 month plan, restored the Android 14 device option, and removed internal workshop wording
+    - Kept the page public-safe by using pre-sale help language without exposing paid-customer-only resources
   -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plans and Devices | 4MyIPTV Service</title>
-  <meta name="description" content="Review 4MyIPTV Service plan pricing, device options, setup inclusions, and next steps." />
+  <meta name="description" content="Review 4MyIPTV Service plans, device options, setup paths, and the best next step before requesting service." />
   <style>
     :root {
       --bg: #07101d;
@@ -173,7 +173,7 @@
       font-size: clamp(2.2rem, 4vw, 4rem);
       line-height: 1.05;
       letter-spacing: -1px;
-      max-width: 12ch;
+      max-width: 11ch;
     }
 
     .lead {
@@ -256,17 +256,15 @@
       max-width: 68ch;
     }
 
-    .grid-3,
-    .grid-5,
     .grid-2,
+    .grid-3,
     .grid-4 {
       display: grid;
       gap: 18px;
     }
 
-    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
     .panel {
@@ -343,6 +341,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
+      padding-top: 56px;
     }
 
     .device-price {
@@ -385,11 +384,6 @@
       color: var(--accent);
     }
 
-    .icon-row {
-      display: grid;
-      gap: 14px;
-    }
-
     .icon-panel {
       padding: 18px;
       border-radius: 16px;
@@ -400,6 +394,15 @@
     .icon-panel strong {
       display: block;
       margin-bottom: 6px;
+    }
+
+    .note-strip {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      color: var(--muted);
     }
 
     .cta-banner {
@@ -449,15 +452,14 @@
     }
 
     @media (max-width: 1200px) {
-      .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 980px) {
       .hero-shell,
       .cta-banner,
-      .grid-3,
       .grid-4,
-      .grid-5,
+      .grid-3,
       .grid-2 {
         grid-template-columns: 1fr;
       }
@@ -520,43 +522,44 @@
     <section class="hero">
       <div class="container hero-shell">
         <div>
-          <div class="eyebrow">Plans • Devices • Setup guidance • Next steps</div>
-          <h1>Choose your plan, choose your device, and move forward with confidence.</h1>
+          <div class="eyebrow">Plans • Devices • Setup options • Help before you buy</div>
+          <h1>See the plans, devices, and setup options that make switching easier.</h1>
           <p class="lead">
-            This page is built to sell, not just inform. Review the service pricing,
-            compare device options, see what is included, and take the next step without hunting for answers.
+            Review flexible service plans, compare ready-to-go device options, and move forward with a request when you are ready.
+            If you are not sure what fits best, you can ask for help before any payment step.
           </p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="request-service.html">Request Service</a>
+            <a class="btn btn-secondary" href="#plans">View Plans</a>
             <a class="btn btn-secondary" href="#device-options">Compare Devices</a>
           </div>
           <div class="hero-mini-grid">
             <div class="mini">
-              <strong>Clear service pricing</strong>
-              <span>No guessing what the plans cost.</span>
+              <strong>Clear pricing</strong>
+              <span>See the service options without guessing what comes next.</span>
             </div>
             <div class="mini">
-              <strong>Best-for guidance</strong>
-              <span>Know which device fits your setup.</span>
+              <strong>Ready-to-go devices</strong>
+              <span>Use your own setup or choose a device prepared for you.</span>
             </div>
             <div class="mini">
-              <strong>Support path included</strong>
-              <span>You know what happens after you request service.</span>
+              <strong>Help before you pay</strong>
+              <span>Ask for guidance first if you need help choosing the right path.</span>
             </div>
           </div>
         </div>
         <aside class="hero-side">
           <div class="quick-card">
-            <h3>Most popular starting point</h3>
-            <p>The onn 4K Plus is the recommended value option for customers who want a strong balance of price and performance.</p>
+            <h3>Most popular device</h3>
+            <p>The onn 4K Plus remains the strongest value choice for most customers who want a simple mix of price, storage, and performance.</p>
           </div>
           <div class="quick-card">
-            <h3>Best value plan</h3>
-            <p>The 2 Year Plan gives the strongest long-term value for customers ready to lock in their setup.</p>
+            <h3>Best middle-ground plan</h3>
+            <p>The 6 Month Plan gives a better rate than monthly service without asking you to commit all the way to a full year.</p>
           </div>
           <div class="quick-card">
-            <h3>Next click</h3>
-            <p>Start by reviewing the plan and device sections below, then move to Request Service when you are ready.</p>
+            <h3>Best next step</h3>
+            <p>Review the plans and devices below, then use the request form to ask for service, a device, or help choosing the best setup.</p>
           </div>
         </aside>
       </div>
@@ -565,20 +568,61 @@
     <section>
       <div class="container">
         <div class="section-head">
-          <h2>Service pricing</h2>
+          <h2>Why customers choose 4MyIPTV Service</h2>
           <p>
-            Keep the plans easy to understand. A customer should be able to scan this section and know the options immediately.
+            This service is built for customers who want lower-cost streaming options, simpler setup choices, and a more guided path than figuring everything out alone.
           </p>
         </div>
-        <div class="grid-3">
+        <div class="grid-4">
+          <article class="icon-panel">
+            <strong>Flexible service plans</strong>
+            Monthly and longer-term options let you choose the pace and price point that fits your budget.
+          </article>
+          <article class="icon-panel">
+            <strong>Use your own device or get one prepared</strong>
+            Start with compatible equipment you already have or choose a ready-to-go option for a smoother experience.
+          </article>
+          <article class="icon-panel">
+            <strong>Beginner-friendly path</strong>
+            You do not need to know every technical detail before you move forward with a request.
+          </article>
+          <article class="icon-panel">
+            <strong>Support after purchase</strong>
+            Customers receive the right follow-up path for setup, renewals, troubleshooting, and next steps after service begins.
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="plans">
+      <div class="container">
+        <div class="section-head">
+          <h2>Service plans</h2>
+          <p>
+            Start with the plan that fits your timeline. You can keep it flexible, choose a better middle option, or lock in the strongest long-term value.
+          </p>
+        </div>
+        <div class="grid-4">
           <article class="panel plan-card">
             <h3>Monthly Plan</h3>
             <div class="price">$15</div>
-            <div class="price-note">Good for flexibility and low upfront commitment.</div>
+            <div class="price-note">Best for customers who want the lowest upfront commitment.</div>
             <ul class="clean-list">
-              <li>Best for customers who want to start simple</li>
-              <li>Easy way to test your setup and flow</li>
-              <li>Good entry point if you are still deciding long term</li>
+              <li>Simple starting point for new customers</li>
+              <li>Good option if you want to test your setup first</li>
+              <li>Flexible month-to-month path</li>
+            </ul>
+          </article>
+
+          <article class="panel plan-card recommended">
+            <div class="label">Smart Saver</div>
+            <h3>6 Month Plan</h3>
+            <div class="price">$70</div>
+            <div class="price-note">A stronger rate than monthly service without committing to a full year.</div>
+            <ul class="clean-list">
+              <li>Good middle-ground option for steady use</li>
+              <li>Better value without going all the way long term</li>
+              <li>Strong fit for customers who already expect regular use</li>
             </ul>
           </article>
 
@@ -586,11 +630,11 @@
             <div class="label">Popular</div>
             <h3>Yearly Plan</h3>
             <div class="price">$120</div>
-            <div class="price-note">Better value for customers planning to use the service regularly.</div>
+            <div class="price-note">Better total value for customers planning to keep the service regularly.</div>
             <ul class="clean-list">
-              <li>Lower total cost than paying month to month</li>
-              <li>Strong fit for customers ready for a longer run</li>
-              <li>Clear, straightforward option for regular users</li>
+              <li>Lower overall cost than paying month to month</li>
+              <li>Good fit for customers ready for a longer run</li>
+              <li>Simple yearly option with strong value</li>
             </ul>
           </article>
 
@@ -598,13 +642,30 @@
             <div class="label">Best Value</div>
             <h3>2 Year Plan</h3>
             <div class="price">$200</div>
-            <div class="price-note">Best overall value for customers ready to lock in the strongest pricing.</div>
+            <div class="price-note">The strongest long-term pricing for customers ready to lock in value.</div>
             <ul class="clean-list">
-              <li>Best long-term savings of the three plan options</li>
-              <li>Strong choice for customers who already know they want the service</li>
-              <li>Designed for the lowest long-run cost</li>
+              <li>Best long-term savings on the page</li>
+              <li>Strong fit for committed repeat users</li>
+              <li>Lowest long-run cost overall</li>
             </ul>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="cta-banner">
+          <div>
+            <h2>Need help before you choose?</h2>
+            <p>
+              Use the request form if you want help picking a plan or device. The public side of the site is for review and pre-sale guidance. Customer-only setup resources are shared after service starts.
+            </p>
+          </div>
+          <div class="cta-actions">
+            <a class="btn btn-primary" href="request-service.html">Request Help or Service</a>
+            <a class="btn btn-secondary" href="#device-options">See Device Options</a>
+          </div>
         </div>
       </div>
     </section>
@@ -612,19 +673,19 @@
     <section id="device-options">
       <div class="container">
         <div class="section-head">
-          <h2>Device pricing and comparison</h2>
+          <h2>Device options and setup paths</h2>
           <p>
-            This section should help a customer understand price, capability, and the best fit without needing a separate explanation.
+            Already have a compatible device? You can request service only. Want a simpler path? Choose a device that can be prepared for you and shipped ready to use.
           </p>
         </div>
-        <div class="grid-5">
+        <div class="grid-3">
           <article class="panel device-card">
             <h3>onn 4K Streaming Device</h3>
             <div class="device-price">$35</div>
             <div class="device-spec">2 GB RAM • 8 GB storage • Ethernet with adapter</div>
             <div class="best-for">
               <strong>Best for</strong>
-              Customers who want the lowest-cost device option for a basic setup.
+              Customers who want the lowest-cost device option for a basic streaming setup.
             </div>
           </article>
 
@@ -645,7 +706,17 @@
             <div class="device-spec">3 GB RAM • 32 GB storage • Built-in Ethernet</div>
             <div class="best-for">
               <strong>Best for</strong>
-              Customers who want more speed, more storage, and a wired connection without jumping to premium pricing.
+              Customers who want more storage, stronger performance, and a wired connection without jumping too high in price.
+            </div>
+          </article>
+
+          <article class="panel device-card">
+            <h3>Android 14 Streaming Box</h3>
+            <div class="device-price">$89</div>
+            <div class="device-spec">2 GB RAM • 16 GB storage • Wi-Fi 6 and Ethernet support</div>
+            <div class="best-for">
+              <strong>Best for</strong>
+              Customers who want a simple home box setup with a ready-to-stream experience.
             </div>
           </article>
 
@@ -656,7 +727,7 @@
             <div class="device-spec">4 GB RAM • 32 GB storage • Built-in Ethernet</div>
             <div class="best-for">
               <strong>Best for</strong>
-              Customers who want the premium mainstream option with strong speed, space, and overall feel.
+              Customers who want the premium mainstream option with strong speed, strong storage, and a polished overall feel.
             </div>
           </article>
 
@@ -666,9 +737,12 @@
             <div class="device-spec">3 GB RAM • 16 GB storage • Built-in Ethernet</div>
             <div class="best-for">
               <strong>Best for</strong>
-              Customers who want a premium performance device that can handle heavy streaming and more demanding use.
+              Customers who want a premium performance device for heavier streaming and more demanding use.
             </div>
           </article>
+        </div>
+        <div class="note-strip">
+          Device pricing is separate from service pricing. Shipped device orders are typically sent within 24 to 48 hours. Domestic shipping is generally $20 per device, and multi-device orders may reduce the per-device rate when shipped together.
         </div>
       </div>
     </section>
@@ -678,25 +752,25 @@
         <div class="section-head">
           <h2>What is included</h2>
           <p>
-            Customers should not have to guess what they are getting. This section answers that directly.
+            Customers should know what kind of help and direction they are getting before they submit a request.
           </p>
         </div>
-        <div class="grid-4 icon-row">
+        <div class="grid-4">
           <article class="icon-panel">
             <strong>Plan guidance</strong>
-            Help choosing the service option that fits your timeline and budget.
+            Help choosing the service option that fits your timeline, budget, and comfort level.
           </article>
           <article class="icon-panel">
             <strong>Device guidance</strong>
-            Clear direction on which streaming device makes the most sense for your setup.
+            Clear direction on whether you should use your own setup or choose a ready-to-go device.
           </article>
           <article class="icon-panel">
-            <strong>Setup path</strong>
-            A cleaner process from request to setup so the next steps stay organized.
+            <strong>Simple request path</strong>
+            One request form handles service, device interest, renewals, support needs, and help choosing.
           </article>
           <article class="icon-panel">
-            <strong>Support flow</strong>
-            Ongoing support direction after your request so you know where to go next.
+            <strong>Next-step clarity</strong>
+            After review, you receive the right quote, setup direction, or follow-up based on what you requested.
           </article>
         </div>
       </div>
@@ -705,41 +779,41 @@
     <section>
       <div class="container">
         <div class="section-head">
-          <h2>Why choose us</h2>
+          <h2>Best fit for different customers</h2>
           <p>
-            This section exists to sell the experience, not just the pricing.
+            Not every customer is looking for the same level of simplicity, speed, or device performance.
           </p>
         </div>
         <div class="grid-2">
           <article class="panel">
-            <h3>What makes this page stronger</h3>
+            <h3>Good fit if you want convenience</h3>
             <ul class="clean-list">
-              <li>Pricing is visible immediately instead of hidden or implied</li>
-              <li>Device choices are organized with clear best-for guidance</li>
-              <li>The recommended option stands out without overcomplicating the page</li>
-              <li>The path to Request Service is repeated so the page keeps selling</li>
+              <li>You want a simpler guided path instead of piecing everything together yourself</li>
+              <li>You want a device option that can be prepared for you</li>
+              <li>You want someone to help narrow the best plan and device first</li>
+              <li>You prefer a quote and review step before paying</li>
             </ul>
           </article>
           <article class="panel">
-            <h3>Who this works best for</h3>
+            <h3>Good fit if you already know what you want</h3>
             <ul class="clean-list">
-              <li>Customers who want a simpler, guided setup path</li>
-              <li>Customers who need help choosing the right device</li>
-              <li>Customers who want clear pricing before moving forward</li>
-              <li>Customers who prefer support instead of guessing through the process</li>
+              <li>You already know the plan length you want</li>
+              <li>You already have a compatible device and only need service</li>
+              <li>You know you want a ready-to-go device shipped to you</li>
+              <li>You are ready to submit a request and move forward</li>
             </ul>
           </article>
         </div>
       </div>
     </section>
 
-    <section>
+    <section class="closing">
       <div class="container">
         <div class="cta-banner">
           <div>
             <h2>Ready to move forward?</h2>
             <p>
-              Review the plan that fits your timeline, pick the device that fits your needs, and use the request form to start the process.
+              Review the plan that fits your budget, choose the device path that makes sense, and submit your request when you are ready. If you still have questions, use the request form and say you want help choosing first.
             </p>
           </div>
           <div class="cta-actions">
@@ -749,29 +823,12 @@
         </div>
       </div>
     </section>
-
-    <section class="closing">
-      <div class="container">
-        <div class="cta-banner">
-          <div>
-            <h2>Not sure which device to choose?</h2>
-            <p>
-              Start with the onn 4K Plus if you want the most balanced option. It is the recommended choice for customers who want strong value without overpaying.
-            </p>
-          </div>
-          <div class="cta-actions">
-            <a class="btn btn-primary" href="request-service.html">Request Service</a>
-            <a class="btn btn-secondary" href="#device-options">Review Devices Again</a>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
   <footer>
     <div class="container footer-row">
       <div>4MyIPTV Service</div>
-      <div>Version 2.0 • Updated April 5, 2026</div>
+      <div>Version 2.1 • Updated April 6, 2026</div>
     </div>
   </footer>
 </body>
