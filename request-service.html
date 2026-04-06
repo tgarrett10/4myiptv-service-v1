@@ -710,6 +710,7 @@
                   <option value="No">No</option>
                   <option value="Not Sure">Not Sure</option>
                 </select>
+                <div id="shippingHelper" class="dynamic-helper" style="display: none;"></div>
               </div>
 
               <div class="field full">
@@ -786,7 +787,7 @@
 
   <footer class="site-footer">
     <div>4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</div>
-    <span class="version">Version 1.6</span>
+    <span class="version">Version 1.7</span>
   </footer>
 
   <script>
@@ -798,6 +799,7 @@
     const categoryHelper = document.getElementById('categoryHelper');
     const planHelper = document.getElementById('planHelper');
     const deviceHelper = document.getElementById('deviceHelper');
+    const shippingHelper = document.getElementById('shippingHelper');
 
     const orderCategory = document.getElementById('orderCategory');
     const deviceRequested = document.getElementById('deviceRequested');
@@ -902,6 +904,19 @@
       deviceHelper.style.display = 'none';
     }
 
+    function updateShippingHelper() {
+      const shipping = shippingNeeded.value;
+
+      if (shipping === 'Yes') {
+        shippingHelper.textContent = '$20 FedEx 2-day shipping for the first device. Multi-device orders may qualify for a lower per-device shipping rate when shipped together.';
+        shippingHelper.style.display = 'block';
+        return;
+      }
+
+      shippingHelper.textContent = '';
+      shippingHelper.style.display = 'none';
+    }
+
     function applySmartDefaults() {
       const category = orderCategory.value;
 
@@ -965,12 +980,14 @@
       updateCategoryHelper();
       updatePlanHelper();
       updateDeviceHelper();
+      updateShippingHelper();
     }
 
     orderCategory.addEventListener('change', applySmartDefaults);
     deviceRequested.addEventListener('change', applySmartDefaults);
     servicePlanRequested.addEventListener('change', updatePlanHelper);
     deviceRequested.addEventListener('change', updateDeviceHelper);
+    shippingNeeded.addEventListener('change', updateShippingHelper);
 
     form.addEventListener('submit', async function (event) {
       event.preventDefault();
