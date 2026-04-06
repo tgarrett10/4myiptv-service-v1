@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service | Checkout</title>
   <!--
-    Version: 1.1
+    Version: 1.2
     Last Updated: 2026-04-06
     Change Notes:
-    - Built for the rebuild as the controlled transplant of the old checkout page.
-    - Uses the rebuild Apps Script update endpoint instead of the old save-as-new-order pattern.
-    - Requires Order ID in the checkout link so PayPal payment updates the existing order row.
-    - Redirects to a dedicated checkout-success page so the request success page is not reused incorrectly.
+    - Strengthened checkout messaging to improve customer confidence.
+    - Added fulfillment expectations, shipping details, and FedEx tracking guidance.
+    - Added direct Telegram support access alongside the support page.
+    - Kept the rebuild checkout flow and existing order update path intact.
   -->
   <style>
     :root {
@@ -46,9 +46,12 @@
     h2 { margin: 0 0 10px; font-size: 1.15rem; }
     .subhead { margin: 0 0 16px; color: var(--muted); font-size: 0.95rem; }
     .locked-grid, .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .locked-item { background: rgba(31, 41, 55, 0.72); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; }
+    .locked-item, .info-item { background: rgba(31, 41, 55, 0.72); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; }
     .locked-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 6px; font-weight: 700; }
     .locked-value { color: var(--text); font-size: 0.95rem; word-break: break-word; }
+    .info-stack { display: grid; gap: 12px; }
+    .info-title { font-weight: 700; margin-bottom: 6px; }
+    .info-item p { margin: 0; color: var(--muted); font-size: 0.94rem; }
     .field { display: flex; flex-direction: column; gap: 8px; }
     .field.full { grid-column: 1 / -1; }
     label { font-size: 0.95rem; font-weight: 700; }
@@ -63,6 +66,13 @@
     .status { min-height: 24px; margin-top: 12px; font-size: 0.92rem; font-weight: 700; }
     .status.success { color: #86efac; }
     .status.error { color: #fca5a5; }
+    .action-stack { display: grid; gap: 10px; margin-top: 14px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px 16px; border-radius: 10px; font-weight: 700; border: 1px solid transparent; transition: background 0.2s ease, border-color 0.2s ease; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.08); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+    .support-note { color: var(--muted); font-size: 0.9rem; margin: 12px 0 0; }
     .footer { max-width: var(--max-width); margin: 0 auto; padding: 0 20px 28px; color: var(--muted); text-align: center; font-size: 0.9rem; }
     .version { display: block; margin-top: 8px; font-size: 0.84rem; color: #94a3b8; }
     @media (max-width: 900px) { .grid, .locked-grid, .field-grid { grid-template-columns: 1fr; } .summary-row { flex-direction: column; } }
@@ -82,8 +92,8 @@
 
   <main class="page-wrap">
     <section class="hero">
-      <h1>Secure Checkout</h1>
-      <p>Review your approved order details below and complete your payment securely.</p>
+      <h1>Secure Your Order</h1>
+      <p>You are one step away from getting started with 4MyIPTV Service. Review your approved order details below and complete your payment to move your order into processing.</p>
     </section>
 
     <div class="grid">
@@ -91,7 +101,7 @@
         <div class="card">
           <div class="pill" id="paymentMethodPill">Payment Method: PayPal</div>
           <h2>Approved Order</h2>
-          <p class="subhead">These details were prepared for your order. If anything looks incorrect, stop here and reach back out before paying.</p>
+          <p class="subhead">Your quote has been prepared for you. If anything looks incorrect, stop here and reach back out before paying.</p>
           <div class="locked-grid">
             <div class="locked-item"><div class="locked-label">Order ID</div><div id="displayOrderId" class="locked-value">-</div></div>
             <div class="locked-item"><div class="locked-label">Approved Status</div><div id="displayStatus" class="locked-value">-</div></div>
@@ -111,6 +121,24 @@
               <label for="approvedNotes">Order Notes</label>
               <textarea id="approvedNotes" readonly></textarea>
               <div class="lock-note">These notes are included for clarity only.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>What Happens After Payment?</h2>
+          <div class="info-stack">
+            <div class="info-item" id="timelineBox">
+              <div class="info-title">Order Processing</div>
+              <p id="timelineText">We will begin processing your order right away after payment is completed.</p>
+            </div>
+            <div class="info-item" id="shippingBox">
+              <div class="info-title">Shipping and Tracking</div>
+              <p id="shippingText">Shipping details will appear here based on your order type.</p>
+            </div>
+            <div class="info-item">
+              <div class="info-title">If We Need Anything Else</div>
+              <p>We will contact you using the name, phone number, or email address connected to your order.</p>
             </div>
           </div>
         </div>
@@ -150,9 +178,21 @@
             <div class="summary-row"><span>Fulfillment</span><strong id="sumFulfillment">-</strong></div>
             <div class="summary-row summary-total"><span>Total Due</span><strong id="sumTotal">$0.00</strong></div>
           </div>
+          <h2>Complete Your Payment</h2>
+          <p class="subhead">Use the secure payment option below to finalize your order.</p>
           <div id="paypalSection">
             <div id="paypal-button-container"></div>
           </div>
+        </div>
+
+        <div class="card">
+          <h2>Questions Before You Pay?</h2>
+          <p class="subhead">If you need help before completing your order, use one of the support options below.</p>
+          <div class="action-stack">
+            <a class="btn btn-primary" href="https://t.me/myiptvservice4" target="_blank" rel="noopener noreferrer">Chat on Telegram</a>
+            <a class="btn btn-secondary" id="supportPageBtn" href="support.html">Visit Support Page</a>
+          </div>
+          <p class="support-note">For shipped device orders, shipping is a flat rate of $20 per device anywhere in the domestic 50 U.S. states. Multi-device orders may qualify for reduced per-device shipping when shipped together.</p>
         </div>
       </aside>
     </div>
@@ -160,7 +200,7 @@
 
   <footer class="footer">
     4MyIPTV Service Checkout
-    <span class="version">Version 1.1 • Last Updated: April 6, 2026</span>
+    <span class="version">Version 1.2 • Last Updated: April 6, 2026</span>
   </footer>
 
   <script>
@@ -194,6 +234,26 @@
       approved.paymentMethod = params.get('paymentMethod') || 'PayPal';
       approved.supportRoute = params.get('supportRoute') || 'support.html';
     }
+    function isShippedOrder() {
+      const fulfillment = (approved.fulfillment || '').toLowerCase();
+      const category = (approved.category || '').toLowerCase();
+      const device = (approved.device || '').toLowerCase();
+      return fulfillment.includes('ship') || category.includes('device') || (device && device !== '-');
+    }
+    function isServiceOnlyOrder() {
+      return !isShippedOrder();
+    }
+    function applyFulfillmentMessaging() {
+      const timelineText = document.getElementById('timelineText');
+      const shippingText = document.getElementById('shippingText');
+      if (isShippedOrder()) {
+        timelineText.textContent = 'For shipped device orders, your device will be prepared and typically ships within 24 to 48 hours after payment is completed.';
+        shippingText.textContent = 'Shipping is a flat rate of $20 per device anywhere in the domestic 50 U.S. states. Multi-device orders may qualify for reduced per-device shipping when shipped together. Once your order ships, you will receive a FedEx tracking number.';
+      } else {
+        timelineText.textContent = 'For service-only orders, your setup details are typically sent within 24 hours after payment is completed.';
+        shippingText.textContent = 'No device shipping is needed for this order. If any follow-up details are required, we will contact you directly using the information connected to your order.';
+      }
+    }
     function applyApprovedValues() {
       document.getElementById('displayOrderId').textContent = approved.id || '-';
       document.getElementById('displayStatus').textContent = approved.status || '-';
@@ -212,6 +272,8 @@
       document.getElementById('email').value = approved.email || '';
       document.getElementById('phone').value = approved.phone || '';
       document.getElementById('paymentMethodPill').textContent = 'Payment Method: ' + approved.paymentMethod;
+      document.getElementById('supportPageBtn').href = approved.supportRoute || 'support.html';
+      applyFulfillmentMessaging();
     }
     function validateApprovedOrder() {
       if (!approved.id || !approved.service || approved.amount <= 0) {
@@ -286,6 +348,11 @@
             const successUrl = new URL(CHECKOUT_SUCCESS_URL);
             successUrl.searchParams.set('orderId', approved.id);
             successUrl.searchParams.set('amount', Number(approved.amount).toFixed(2));
+            successUrl.searchParams.set('fulfillment', approved.fulfillment || '');
+            successUrl.searchParams.set('category', approved.category || '');
+            successUrl.searchParams.set('device', approved.device || '');
+            successUrl.searchParams.set('service', approved.service || '');
+            successUrl.searchParams.set('supportRoute', approved.supportRoute || 'support.html');
             window.location.href = successUrl.toString();
           } catch (error) {
             console.error(error);
