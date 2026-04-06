@@ -5,20 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service | Payment Received</title>
   <!--
-    Version: 1.0
+    Version: 1.1
     Last Updated: 2026-04-06
     Change Notes:
-    - Added a dedicated payment success page for the rebuild.
-    - Keeps payment confirmation separate from the request submission success page.
+    - Strengthened payment confirmation messaging for better customer reassurance.
+    - Added fulfillment expectations, shipping details, and FedEx tracking guidance.
+    - Added direct Telegram support access alongside the support page.
   -->
   <style>
     :root {
       --panel: rgba(17, 24, 39, 0.96);
+      --panel-2: rgba(31, 41, 55, 0.72);
       --text: #f8fafc;
       --muted: #cbd5e1;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
-      --max-width: 840px;
+      --max-width: 920px;
       --radius: 14px;
     }
     * { box-sizing: border-box; }
@@ -31,13 +33,17 @@
     .nav-links a { padding: 8px 12px; border-radius: 8px; color: var(--muted); transition: background 0.2s ease, color 0.2s ease; }
     .nav-links a:hover, .nav-links a.active { background: rgba(255,255,255,0.08); color: var(--text); }
     .page-wrap { max-width: var(--max-width); margin: 0 auto; padding: 44px 20px 60px; }
-    .success-card { background: var(--panel); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 34px 28px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.24); }
+    .success-card { background: var(--panel); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 34px 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.24); }
     .icon-wrap { width: 72px; height: 72px; margin: 0 auto 18px; border-radius: 50%; display: grid; place-items: center; background: rgba(22,163,74,0.16); color: #86efac; font-size: 2rem; font-weight: 700; border: 1px solid rgba(22,163,74,0.28); }
-    h1 { margin: 0 0 12px; font-size: 2rem; }
-    .lead { margin: 0 auto 14px; max-width: 620px; color: var(--muted); }
-    .detail-box { margin: 20px auto 0; max-width: 420px; background: rgba(31, 41, 55, 0.72); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; text-align: left; }
+    h1 { margin: 0 0 12px; font-size: 2rem; text-align: center; }
+    .lead { margin: 0 auto 18px; max-width: 680px; color: var(--muted); text-align: center; }
+    .detail-box, .message-box { background: var(--panel-2); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; }
+    .detail-box { margin: 0 auto 18px; max-width: 460px; }
     .detail-row { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
     .detail-row:last-child { margin-bottom: 0; }
+    .stack { display: grid; gap: 14px; margin-top: 20px; }
+    .section-title { font-weight: 700; margin-bottom: 6px; }
+    .message-box p { margin: 0; color: var(--muted); }
     .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
     .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 18px; border-radius: 10px; font-weight: 700; border: 1px solid transparent; }
     .btn-primary { background: var(--accent); color: #fff; }
@@ -63,28 +69,66 @@
     <section class="success-card">
       <div class="icon-wrap">✓</div>
       <h1>Payment Received</h1>
-      <p class="lead">Thank you. Your payment has been received successfully. We will review your order and follow up with the next setup or handoff step as soon as possible.</p>
+      <p class="lead">Thank you. Your payment has been received and your order is now moving into processing.</p>
+
       <div class="detail-box">
         <div class="detail-row"><span>Order ID</span><strong id="orderId">-</strong></div>
         <div class="detail-row"><span>Amount Paid</span><strong id="amountPaid">$0.00</strong></div>
+        <div class="detail-row"><span>Service</span><strong id="serviceName">-</strong></div>
       </div>
+
+      <div class="stack">
+        <div class="message-box">
+          <div class="section-title">What Happens Next</div>
+          <p id="nextStepsText">We are now processing your order.</p>
+        </div>
+        <div class="message-box">
+          <div class="section-title">What to Expect</div>
+          <p>Please keep an eye on your messages in case we need to confirm any final details. We will continue moving your order forward as quickly as possible.</p>
+        </div>
+        <div class="message-box">
+          <div class="section-title">Need Help or Have a Question?</div>
+          <p>You can reach us directly for support and order questions using the options below.</p>
+        </div>
+      </div>
+
       <div class="actions">
-        <a class="btn btn-primary" href="index.html">Back to Home</a>
-        <a class="btn btn-secondary" href="support.html">Support Page</a>
+        <a class="btn btn-primary" href="https://t.me/myiptvservice4" target="_blank" rel="noopener noreferrer">Chat on Telegram</a>
+        <a class="btn btn-secondary" id="supportPageBtn" href="support.html">Go to Support Page</a>
       </div>
     </section>
   </main>
 
   <footer class="footer">
     4MyIPTV Service Payment Confirmation
-    <span class="version">Version 1.0 • Last Updated: April 6, 2026</span>
+    <span class="version">Version 1.1 • Last Updated: April 6, 2026</span>
   </footer>
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    document.getElementById('orderId').textContent = params.get('orderId') || '-';
+    const orderId = params.get('orderId') || '-';
     const amount = Number(params.get('amount') || 0);
+    const service = params.get('service') || '-';
+    const fulfillment = (params.get('fulfillment') || '').toLowerCase();
+    const category = (params.get('category') || '').toLowerCase();
+    const device = params.get('device') || '';
+    const supportRoute = params.get('supportRoute') || 'support.html';
+
+    function isShippedOrder() {
+      return fulfillment.includes('ship') || category.includes('device') || (device && device !== '-');
+    }
+
+    document.getElementById('orderId').textContent = orderId;
     document.getElementById('amountPaid').textContent = '$' + amount.toFixed(2);
+    document.getElementById('serviceName').textContent = service;
+    document.getElementById('supportPageBtn').href = supportRoute;
+
+    const nextSteps = document.getElementById('nextStepsText');
+    if (isShippedOrder()) {
+      nextSteps.textContent = 'For shipped device orders, your device is now being prepared and will typically ship within 24 to 48 hours. Once your order ships, you will receive a FedEx tracking number. Shipping is a flat rate of $20 per device anywhere in the domestic 50 U.S. states. Multi-device orders may qualify for reduced per-device shipping when shipped together.';
+    } else {
+      nextSteps.textContent = 'For service-only orders, your setup details are typically sent within 24 hours. If we need any additional information, we will contact you directly using the information connected to your order.';
+    }
   </script>
 </body>
 </html>
