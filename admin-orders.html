@@ -3,11 +3,12 @@
 <head>
   <!--
     File: admin-orders.html
-    Version: 1.0.0
+    Version: 1.0.2
     Change Notes:
     - Full replacement focused on admin order update stability
     - Keeps load/edit/save flow simple
     - Save path uses URLSearchParams POST to reduce Apps Script fetch failures
+    - SCRIPT_URL updated to the newly deployed /exec URL
     - Saves only these admin update fields:
       Quoted Price
       Amount Paid
@@ -394,7 +395,7 @@
         <h1>Admin Orders</h1>
         <p>Load orders, select an order, and save only the admin update fields back to Orders.</p>
       </div>
-      <div class="version-badge">Version 1.0.1</div>
+      <div class="version-badge">Version 1.0.2</div>
     </div>
 
     <div id="statusBar" class="status-bar">
@@ -593,11 +594,11 @@
       </section>
     </div>
 
-    <div class="footer">4MyIPTV Service - Admin Orders - Version 1.0.1</div>
+    <div class="footer">4MyIPTV Service - Admin Orders - Version 1.0.2</div>
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8n5SFFhkB7nEOPR0x-QHr_igHC927joU9PW58AaJGS_kKVbXglA0DynA6OTgBykWM/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAAdJFkMuQG8bsckI-vtD4U44XVVc61-ukuPQwjuaA492CoynQxeWpvfzJ6F6_1eCtfQ/exec';
     const SAVE_ACTION = 'updateorder';
 
     let allOrders = [];
