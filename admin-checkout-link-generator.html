@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service | Checkout Link Generator</title>
   <!--
-    Version: 1.1
+    Version: 1.2
     Last Updated: 2026-04-06
     Change Notes:
-    - Built for the rebuild as a controlled transplant of the old checkout generator concept.
-    - Uses relative routing so the page works inside the rebuild repo without a hardcoded GitHub Pages URL.
-    - Accepts prefilled values from admin-orders.html and can also be used manually.
-    - Includes Order ID in the checkout link so payment can update the existing order row instead of creating a duplicate.
+    - Upgraded the generator into a quote dispatch page instead of a link-only utility.
+    - Generate now builds the checkout link, prepares the customer message, and saves the link back to the existing order row.
+    - Added a copy-ready customer payment message so the admin can send the quote without going back into Admin Orders first.
+    - Added a clean return path back to Admin Orders with the Order ID preserved in the URL.
   -->
   <style>
     :root {
@@ -27,7 +27,7 @@
       --success: #16a34a;
       --danger: #dc2626;
       --radius: 12px;
-      --max-width: 1160px;
+      --max-width: 1240px;
     }
     * { box-sizing: border-box; }
     body {
@@ -71,25 +71,14 @@
     .page-wrap {
       max-width: var(--max-width);
       margin: 0 auto;
-      padding: 36px 20px 60px;
+      padding: 34px 20px 60px;
     }
-    .hero {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .hero h1 {
-      margin: 0 0 10px;
-      font-size: 2rem;
-      line-height: 1.15;
-    }
-    .hero p {
-      margin: 0 auto;
-      max-width: 780px;
-      color: var(--muted);
-    }
+    .hero { text-align: center; margin-bottom: 24px; }
+    .hero h1 { margin: 0 0 10px; font-size: 2rem; line-height: 1.15; }
+    .hero p { margin: 0 auto; max-width: 850px; color: var(--muted); }
     .grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+      grid-template-columns: minmax(0, 1.06fr) minmax(360px, 0.94fr);
       gap: 18px;
       align-items: start;
     }
@@ -120,12 +109,12 @@
       font-size: 0.95rem;
       font-family: Arial, Helvetica, sans-serif;
     }
-    textarea { min-height: 92px; resize: vertical; }
+    textarea { min-height: 96px; resize: vertical; }
     .button-row {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
-      margin-top: 6px;
+      margin-top: 8px;
     }
     .btn {
       display: inline-flex;
@@ -143,9 +132,10 @@
     .btn-secondary { background: var(--soft); color: var(--text); border-color: rgba(255,255,255,0.08); }
     .btn-secondary:hover { background: rgba(255,255,255,0.14); }
     .btn-danger { background: rgba(220,38,38,0.14); border-color: rgba(220,38,38,0.34); color: #fecaca; }
-    .status { min-height: 22px; margin-top: 8px; font-size: 0.92rem; font-weight: 700; }
+    .status { min-height: 22px; margin-top: 10px; font-size: 0.92rem; font-weight: 700; }
     .status.success { color: #86efac; }
     .status.error { color: #fca5a5; }
+    .status.info { color: #bfdbfe; }
     .preview-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -160,8 +150,9 @@
     }
     .preview-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 6px; font-weight: 700; }
     .preview-value { color: var(--text); font-size: 0.95rem; word-break: break-word; }
-    .url-box {
-      min-height: 170px;
+    .stack { display: grid; gap: 16px; }
+    .output-box {
+      min-height: 150px;
       background: #020617;
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -172,6 +163,7 @@
       line-height: 1.5;
       word-break: break-word;
     }
+    .message-box { min-height: 210px; white-space: pre-wrap; }
     .note-box {
       background: rgba(37, 99, 235, 0.12);
       border: 1px solid rgba(37, 99, 235, 0.26);
@@ -181,6 +173,7 @@
       font-size: 0.92rem;
       margin-bottom: 16px;
     }
+    .helper { font-size: 0.86rem; color: #94a3b8; margin-top: 6px; }
     .footer {
       max-width: var(--max-width);
       margin: 0 auto;
@@ -190,7 +183,7 @@
       font-size: 0.9rem;
     }
     .version { display: block; margin-top: 8px; font-size: 0.84rem; color: #94a3b8; }
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
       .grid, .field-grid, .preview-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -209,15 +202,15 @@
 
   <main class="page-wrap">
     <section class="hero">
-      <h1>Checkout Link Generator</h1>
-      <p>Use this page to create the locked payment link you send to the customer after the quote is approved.</p>
+      <h1>Checkout Dispatch</h1>
+      <p>Generate the checkout link, save it back to the order, and copy the ready-to-send customer message from one page.</p>
     </section>
 
     <div class="grid">
       <section>
         <div class="card">
           <h2>Approved Order Details</h2>
-          <p class="subhead">This page supports direct prefill from Admin Orders or manual entry if needed. Keep the Order ID tied to the original request so payment updates the same row.</p>
+          <p class="subhead">Use the prefilled order details from Admin Orders, make any final adjustments if needed, then generate the link and dispatch message.</p>
 
           <div class="field-grid">
             <div class="field">
@@ -263,12 +256,13 @@
               <input id="fulfillment" type="text" placeholder="Online Setup or Local Delivery" />
             </div>
             <div class="field">
-              <label for="status">Checkout Status</label>
+              <label for="status">Dispatch Status</label>
               <select id="status">
-                <option value="QUOTE READY">QUOTE READY</option>
                 <option value="PAYMENT SENT">PAYMENT SENT</option>
+                <option value="QUOTE READY">QUOTE READY</option>
                 <option value="PENDING">PENDING</option>
               </select>
+              <div class="helper">Defaulted to PAYMENT SENT because this page is for sending the checkout link.</div>
             </div>
             <div class="field">
               <label for="supportRoute">Support Route</label>
@@ -285,19 +279,21 @@
           </div>
 
           <div class="button-row">
-            <button class="btn btn-primary" id="generateBtn" type="button">Generate Checkout Link</button>
+            <button class="btn btn-primary" id="generateBtn" type="button">Generate and Save</button>
             <button class="btn btn-secondary" id="copyBtn" type="button">Copy Link</button>
+            <button class="btn btn-secondary" id="copyMessageBtn" type="button">Copy Customer Message</button>
             <button class="btn btn-secondary" id="openBtn" type="button">Open Link</button>
+            <a class="btn btn-secondary" id="returnBtn" href="admin-orders.html">Return to Admin Orders</a>
             <button class="btn btn-danger" id="resetBtn" type="button">Reset</button>
           </div>
           <div id="statusMessage" class="status"></div>
         </div>
       </section>
 
-      <aside>
+      <aside class="stack">
         <div class="card">
-          <h2>Preview</h2>
-          <div class="note-box">This page creates a customer-facing checkout link inside the rebuild using a relative route to <strong>checkout.html</strong>. No hardcoded repo URL is used.</div>
+          <h2>Dispatch Preview</h2>
+          <div class="note-box">This page creates the customer-facing <strong>checkout.html</strong> link, saves that link back to the matching order row, and gives you a copy-ready customer message without needing to jump back into Admin Orders first.</div>
           <div class="preview-grid">
             <div class="preview-item"><div class="preview-label">Order ID</div><div id="previewOrderId" class="preview-value">-</div></div>
             <div class="preview-item"><div class="preview-label">Customer</div><div id="previewCustomer" class="preview-value">-</div></div>
@@ -306,25 +302,35 @@
             <div class="preview-item"><div class="preview-label">Amount</div><div id="previewAmount" class="preview-value">$0.00</div></div>
             <div class="preview-item"><div class="preview-label">Status</div><div id="previewStatus" class="preview-value">-</div></div>
           </div>
+        </div>
+
+        <div class="card">
           <label for="generatedUrl" style="display:block;margin-bottom:8px;font-weight:700;">Generated Checkout URL</label>
-          <textarea id="generatedUrl" class="url-box" readonly></textarea>
+          <textarea id="generatedUrl" class="output-box" readonly></textarea>
+        </div>
+
+        <div class="card">
+          <label for="customerMessage" style="display:block;margin-bottom:8px;font-weight:700;">Ready-to-Send Customer Message</label>
+          <textarea id="customerMessage" class="output-box message-box" readonly></textarea>
         </div>
       </aside>
     </div>
   </main>
 
   <footer class="footer">
-    4MyIPTV Service Checkout Link Generator
-    <span class="version">Version 1.1 • Last Updated: April 6, 2026</span>
+    4MyIPTV Service Checkout Dispatch
+    <span class="version">Version 1.2 • Last Updated: April 6, 2026</span>
   </footer>
 
   <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqYVmQVKoEqH64X23hB2w0oXS-uQD8nAYwzS2S1jlOhFqqfxl4af-97grKFbAFe_7kMw/exec";
     const checkoutBaseUrl = new URL('checkout.html', window.location.href).href;
     const fields = ['orderId', 'customerName', 'customerEmail', 'customerPhone', 'service', 'category', 'device', 'fulfillment', 'amount', 'status', 'description', 'notes', 'paymentMethod', 'supportRoute'];
 
     function byId(id) { return document.getElementById(id); }
     function valueOrDash(value) { return value && String(value).trim() ? String(value).trim() : '-'; }
     function money(value) { return '$' + Number(value || 0).toFixed(2); }
+    function safeRaw(value) { return value === null || value === undefined ? '' : String(value).trim(); }
     function showMessage(message, type) {
       const box = byId('statusMessage');
       box.className = 'status ' + type;
@@ -350,8 +356,17 @@
         description: byId('description').value.trim(),
         notes: byId('notes').value.trim(),
         paymentMethod: byId('paymentMethod').value,
-        supportRoute: byId('supportRoute').value.trim()
+        supportRoute: byId('supportRoute').value.trim() || 'support.html'
       };
+    }
+    function buildAdminOrdersUrl(orderId) {
+      const params = new URLSearchParams();
+      if (safeRaw(orderId)) params.set('id', safeRaw(orderId));
+      params.set('tab', 'payment');
+      return 'admin-orders.html?' + params.toString();
+    }
+    function updateReturnButton() {
+      byId('returnBtn').href = buildAdminOrdersUrl(byId('orderId').value);
     }
     function updatePreview() {
       const data = getFormData();
@@ -361,11 +376,12 @@
       byId('previewDevice').textContent = valueOrDash(data.device);
       byId('previewAmount').textContent = money(data.amount || 0);
       byId('previewStatus').textContent = valueOrDash(data.status);
+      updateReturnButton();
     }
     function validateForm() {
       const data = getFormData();
       if (!data.id) {
-        showMessage('Order ID is required so payment updates the existing order row.', 'error');
+        showMessage('Order ID is required so the checkout link saves back to the correct row.', 'error');
         return false;
       }
       if (!data.service) {
@@ -397,15 +413,84 @@
       params.set('supportRoute', data.supportRoute || 'support.html');
       return checkoutBaseUrl + '?' + params.toString();
     }
-    function generateLink() {
+    function buildCustomerMessage(url) {
+      const data = getFormData();
+      const amount = money(data.amount || 0);
+      const parts = [
+        `Hi ${data.name || 'there'},`,
+        '',
+        'Your quote is ready to move forward.',
+        `Service: ${data.service || '-'}`,
+        `Device: ${data.device || 'Service Only'}`,
+        `Total: ${amount}`,
+        '',
+        'Use the secure checkout link below to complete payment:',
+        url,
+        '',
+        'Once payment is completed, reply back and I will move your order into the next step.'
+      ];
+      return parts.join('\n');
+    }
+    function getPaymentStatusForDispatch(status) {
+      const normalized = safeRaw(status).toUpperCase();
+      if (normalized === 'PAYMENT SENT') return 'PAYMENT SENT';
+      if (normalized === 'PENDING') return 'PENDING';
+      return 'QUOTE PENDING';
+    }
+    async function saveLinkToOrder(url) {
+      const data = getFormData();
+      const payload = new URLSearchParams({
+        action: 'updateOrder',
+        id: data.id,
+        finalPlan: data.service,
+        finalDevice: data.device,
+        quoteAmount: Number(data.amount || 0).toFixed(2),
+        amountPaid: '',
+        balanceDue: Number(data.amount || 0).toFixed(2),
+        paymentMethod: data.paymentMethod,
+        paymentLink: url,
+        supportRoute: data.supportRoute,
+        orderStatus: data.status || 'PAYMENT SENT',
+        paymentStatus: getPaymentStatusForDispatch(data.status),
+        notes: data.notes
+      });
+
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: payload,
+        cache: 'no-store',
+        redirect: 'follow'
+      });
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status + ' returned from Apps Script.');
+      }
+      const result = await response.json();
+      if (!result || result.success !== true) {
+        throw new Error((result && result.message) ? result.message : 'Unknown save error.');
+      }
+      return result;
+    }
+    async function generateAndSave() {
       clearMessage();
       if (!validateForm()) {
         byId('generatedUrl').value = '';
+        byId('customerMessage').value = '';
         return;
       }
+
       const url = buildCheckoutUrl();
+      const message = buildCustomerMessage(url);
       byId('generatedUrl').value = url;
-      showMessage('Checkout link generated successfully.', 'success');
+      byId('customerMessage').value = message;
+      showMessage('Saving checkout link back to the order...', 'info');
+
+      try {
+        await saveLinkToOrder(url);
+        showMessage('Checkout link generated, saved to the order, and ready to send.', 'success');
+      } catch (error) {
+        console.error('Checkout Dispatch Save Error:', error);
+        showMessage('Checkout link generated, but saving back to the order failed. ' + error.message, 'error');
+      }
     }
     async function copyLink() {
       const url = byId('generatedUrl').value.trim();
@@ -422,6 +507,21 @@
         showMessage('Checkout link copied to clipboard.', 'success');
       }
     }
+    async function copyCustomerMessage() {
+      const message = byId('customerMessage').value.trim();
+      if (!message) {
+        showMessage('Generate the checkout link first.', 'error');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(message);
+        showMessage('Customer message copied to clipboard.', 'success');
+      } catch (error) {
+        byId('customerMessage').select();
+        document.execCommand('copy');
+        showMessage('Customer message copied to clipboard.', 'success');
+      }
+    }
     function openLink() {
       const url = byId('generatedUrl').value.trim();
       if (!url) {
@@ -434,7 +534,7 @@
       fields.forEach(id => {
         const el = byId(id);
         if (el.tagName === 'SELECT') {
-          if (id === 'status') el.value = 'QUOTE READY';
+          if (id === 'status') el.value = 'PAYMENT SENT';
           else if (id === 'paymentMethod') el.value = 'PayPal';
           else el.selectedIndex = 0;
         } else if (id === 'supportRoute') {
@@ -444,6 +544,7 @@
         }
       });
       byId('generatedUrl').value = '';
+      byId('customerMessage').value = '';
       clearMessage();
       updatePreview();
     }
@@ -469,13 +570,19 @@
         const value = params.get(paramKey);
         if (value !== null) byId(fieldId).value = value;
       });
+      const statusValue = safeRaw(byId('status').value).toUpperCase();
+      if (!statusValue || statusValue === 'QUOTE READY') {
+        byId('status').value = 'PAYMENT SENT';
+      }
     }
+
     fields.forEach(id => {
       byId(id).addEventListener('input', updatePreview);
       byId(id).addEventListener('change', updatePreview);
     });
-    byId('generateBtn').addEventListener('click', generateLink);
+    byId('generateBtn').addEventListener('click', generateAndSave);
     byId('copyBtn').addEventListener('click', copyLink);
+    byId('copyMessageBtn').addEventListener('click', copyCustomerMessage);
     byId('openBtn').addEventListener('click', openLink);
     byId('resetBtn').addEventListener('click', resetForm);
     applyPrefillFromQuery();
