@@ -394,7 +394,7 @@
         <h1>Admin Orders</h1>
         <p>Load orders, select an order, and save only the admin update fields back to Orders.</p>
       </div>
-      <div class="version-badge">Version 1.0.0</div>
+      <div class="version-badge">Version 1.0.1</div>
     </div>
 
     <div id="statusBar" class="status-bar">
@@ -533,11 +533,15 @@
                   <label for="paymentStatus">Payment Status</label>
                   <select id="paymentStatus">
                     <option value="">Select</option>
-                    <option value="Not Paid">Not Paid</option>
-                    <option value="Quoted">Quoted</option>
-                    <option value="Partial">Partial</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Refunded">Refunded</option>
+                    <option value="QUOTE PENDING">QUOTE PENDING</option>
+                    <option value="UNPAID">UNPAID</option>
+                    <option value="NOT SENT">NOT SENT</option>
+                    <option value="SENT">SENT</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="PAYMENT SENT">PAYMENT SENT</option>
+                    <option value="PAID">PAID</option>
+                    <option value="PAYMENT RECEIVED">PAYMENT RECEIVED</option>
+                    <option value="FAILED">FAILED</option>
                   </select>
                 </div>
 
@@ -558,15 +562,18 @@
                   <label for="currentStatus">Current Status</label>
                   <select id="currentStatus">
                     <option value="">Select</option>
-                    <option value="New">New</option>
-                    <option value="Quoted">Quoted</option>
-                    <option value="Awaiting Payment">Awaiting Payment</option>
-                    <option value="Paid">Paid</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Ready">Ready</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Closed">Closed</option>
-                    <option value="Issue">Issue</option>
+                    <option value="NEW">NEW</option>
+                    <option value="UNDER REVIEW">UNDER REVIEW</option>
+                    <option value="QUOTE READY">QUOTE READY</option>
+                    <option value="QUOTE SENT">QUOTE SENT</option>
+                    <option value="PAYMENT SENT">PAYMENT SENT</option>
+                    <option value="PAID">PAID</option>
+                    <option value="SETUP SCHEDULED">SETUP SCHEDULED</option>
+                    <option value="IN PROGRESS">IN PROGRESS</option>
+                    <option value="READY FOR DELIVERY">READY FOR DELIVERY</option>
+                    <option value="COMPLETE">COMPLETE</option>
+                    <option value="ON HOLD">ON HOLD</option>
+                    <option value="CANCELLED">CANCELLED</option>
                   </select>
                 </div>
 
@@ -586,13 +593,12 @@
       </section>
     </div>
 
-    <div class="footer">4MyIPTV Service - Admin Orders - Version 1.0.0</div>
+    <div class="footer">4MyIPTV Service - Admin Orders - Version 1.0.1</div>
   </div>
 
   <script>
-    const SCRIPT_URL = 'PASTE_YOUR_WEB_APP_EXEC_URL_HERE';
-    const LOAD_ACTION = 'getOrders';
-    const SAVE_ACTION = 'updateAdminOrder';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8n5SFFhkB7nEOPR0x-QHr_igHC927joU9PW58AaJGS_kKVbXglA0DynA6OTgBykWM/exec';
+    const SAVE_ACTION = 'updateorder';
 
     let allOrders = [];
     let filteredOrders = [];
@@ -668,7 +674,6 @@
 
       try {
         const url = new URL(SCRIPT_URL);
-        url.searchParams.set('action', LOAD_ACTION);
         url.searchParams.set('_', String(Date.now()));
 
         const response = await fetch(url.toString(), { method: 'GET' });
@@ -715,24 +720,25 @@
     function normalizeOrder(row) {
       const order = {
         raw: row,
-        orderId: pick(row, ['Order ID', 'orderId', 'OrderId', 'ID']),
-        customerName: pick(row, ['Customer Name', 'customerName', 'Full Name', 'Name']),
-        phone: pick(row, ['Phone', 'phone', 'Phone Number']),
-        email: pick(row, ['Email', 'email']),
-        preferredContactMethod: pick(row, ['Preferred Contact Method', 'preferredContactMethod']),
-        orderCategory: pick(row, ['Order Category', 'orderCategory']),
-        servicePlanRequested: pick(row, ['Service Plan Requested', 'servicePlanRequested']),
-        deviceRequested: pick(row, ['Device Requested', 'deviceRequested']),
-        shippingNeeded: pick(row, ['Shipping Needed', 'shippingNeeded']),
-        setupType: pick(row, ['Setup Type', 'setupType']),
-        quotedPrice: cleanMoneyString(pick(row, ['Quoted Price', 'quotedPrice'])),
-        amountPaid: cleanMoneyString(pick(row, ['Amount Paid', 'amountPaid'])),
-        balanceDue: cleanMoneyString(pick(row, ['Balance Due', 'balanceDue'])),
-        paymentStatus: pick(row, ['Payment Status', 'paymentStatus']),
-        paymentMethod: pick(row, ['Payment Method', 'paymentMethod']),
-        currentStatus: pick(row, ['Current Status', 'currentStatus']),
-        internalNotes: pick(row, ['Internal Notes', 'internalNotes']),
-        timestamp: pick(row, ['Timestamp', 'Created At', 'Date', 'Order Date'])
+        id: pick(row, ['id', 'requestId', 'rowId']),
+        orderId: pick(row, ['id', 'requestId', 'rowId']),
+        customerName: pick(row, ['customerName', 'name', 'customerFullName']),
+        phone: pick(row, ['phoneNumber', 'phone']),
+        email: pick(row, ['emailAddress', 'email']),
+        preferredContactMethod: pick(row, ['preferredContact', 'contactMethod', 'preferredContactMethod']),
+        orderCategory: pick(row, ['orderCategory', 'customerType']),
+        servicePlanRequested: pick(row, ['servicePlan', 'planInterest', 'servicePlanRequested']),
+        deviceRequested: pick(row, ['device', 'deviceSelected', 'deviceRequested']),
+        shippingNeeded: pick(row, ['shippingNeeded']),
+        setupType: pick(row, ['setupType', 'fulfillmentType', 'fulfillmentPath']),
+        quotedPrice: cleanMoneyString(pick(row, ['quoteAmount', 'amount', 'quotedPrice'])),
+        amountPaid: cleanMoneyString(pick(row, ['amountPaid'])),
+        balanceDue: cleanMoneyString(pick(row, ['balanceDue'])),
+        paymentStatus: pick(row, ['paymentStatus']),
+        paymentMethod: pick(row, ['paymentMethod']),
+        currentStatus: pick(row, ['orderStatus', 'status', 'currentStatus']),
+        internalNotes: pick(row, ['internalNotes', 'notes']),
+        timestamp: pick(row, ['createdAt', 'timestamp', 'date'])
       };
 
       return order;
@@ -816,15 +822,15 @@
 
       const lower = v.toLowerCase();
 
-      if (['paid', 'completed', 'closed', 'ready'].includes(lower)) {
+      if (['paid', 'payment received', 'complete', 'completed', 'closed', 'ready', 'ready for delivery'].includes(lower)) {
         return '<span class="pill pill-green">' + escapeHtml(v) + '</span>';
       }
 
-      if (['partial', 'quoted', 'awaiting payment', 'in progress'].includes(lower)) {
+      if (['partial', 'quoted', 'quote pending', 'quote ready', 'quote sent', 'payment sent', 'sent', 'pending', 'awaiting payment', 'in progress', 'under review', 'setup scheduled'].includes(lower)) {
         return '<span class="pill pill-yellow">' + escapeHtml(v) + '</span>';
       }
 
-      if (['issue', 'not paid', 'refunded'].includes(lower)) {
+      if (['issue', 'not paid', 'unpaid', 'failed', 'cancelled', 'canceled', 'refunded', 'on hold'].includes(lower)) {
         return '<span class="pill pill-red">' + escapeHtml(v) + '</span>';
       }
 
@@ -835,8 +841,8 @@
       els.statTotal.textContent = String(filteredOrders.length);
 
       const quotedCount = filteredOrders.filter(order =>
-        String(order.currentStatus || '').toLowerCase() === 'quoted' ||
-        String(order.paymentStatus || '').toLowerCase() === 'quoted'
+        ['quote ready', 'quote sent'].includes(String(order.currentStatus || '').toLowerCase()) ||
+        ['quote pending'].includes(String(order.paymentStatus || '').toLowerCase())
       ).length;
 
       const paidCount = filteredOrders.filter(order =>
@@ -929,13 +935,12 @@
 
       const payload = {
         action: SAVE_ACTION,
-        orderId: els.orderId.value.trim(),
-        quotedPrice: cleanMoneyString(els.quotedPrice.value),
+        id: els.orderId.value.trim(),
+        quoteAmount: cleanMoneyString(els.quotedPrice.value),
         amountPaid: cleanMoneyString(els.amountPaid.value),
-        balanceDue: cleanMoneyString(els.balanceDue.value),
         paymentStatus: els.paymentStatus.value.trim(),
         paymentMethod: els.paymentMethod.value.trim(),
-        currentStatus: els.currentStatus.value.trim(),
+        status: els.currentStatus.value.trim(),
         internalNotes: els.internalNotes.value.trim()
       };
 
@@ -962,7 +967,7 @@
 
         updateLocalOrder(payload);
         applyFilter();
-        selectOrder(payload.orderId);
+        selectOrder(payload.id);
 
         setStatus('Order saved successfully.', 'ok');
       } catch (error) {
@@ -974,17 +979,27 @@
     }
 
     function updateLocalOrder(payload) {
-      const index = allOrders.findIndex(order => order.orderId === payload.orderId);
+      const index = allOrders.findIndex(order => order.orderId === payload.id);
       if (index === -1) return;
+
+      const nextQuoted = payload.quoteAmount;
+      const nextPaid = payload.amountPaid;
+      let nextBalance = allOrders[index].balanceDue;
+
+      const quotedNum = parseMoney(nextQuoted);
+      const paidNum = parseMoney(nextPaid);
+      if (quotedNum !== null && paidNum !== null) {
+        nextBalance = Math.max(quotedNum - paidNum, 0).toFixed(2);
+      }
 
       allOrders[index] = {
         ...allOrders[index],
-        quotedPrice: payload.quotedPrice,
-        amountPaid: payload.amountPaid,
-        balanceDue: payload.balanceDue,
+        quotedPrice: nextQuoted,
+        amountPaid: nextPaid,
+        balanceDue: nextBalance,
         paymentStatus: payload.paymentStatus,
         paymentMethod: payload.paymentMethod,
-        currentStatus: payload.currentStatus,
+        currentStatus: payload.status,
         internalNotes: payload.internalNotes
       };
     }
