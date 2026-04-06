@@ -1,2215 +1,1019 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!--
+    File: admin-orders.html
+    Version: 1.0.0
+    Change Notes:
+    - Full replacement focused on admin order update stability
+    - Keeps load/edit/save flow simple
+    - Save path uses URLSearchParams POST to reduce Apps Script fetch failures
+    - Saves only these admin update fields:
+      Quoted Price
+      Amount Paid
+      Balance Due
+      Payment Status
+      Payment Method
+      Current Status
+      Internal Notes
+  -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>4MyIPTV Service | Admin Orders</title>
-  <!--
-    Version: 2.6
-    Last Updated: 2026-04-05
-    Change Notes:
-    - Preserved the existing dark admin-orders style and live order table concept.
-    - Added a quote and payment workspace directly into admin-orders.html.
-    - Added local draft saving by request ID so quote work is not lost between refreshes.
-    - Added suggested pricing logic for service plans and device packages.
-    - Added copy-ready quote, payment request, paid confirmation, and support handoff messages.
-    - Kept the page as an internal admin control page, not a customer-facing page.
-  -->
+  <title>4MyIPTV Service - Admin Orders</title>
   <style>
     :root {
-      --bg: #08111f;
-      --panel: #101827;
-      --panel-soft: #0b1220;
-      --panel-2: #0f172a;
-      --text: #f8fafc;
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --line: #334155;
+      --text: #e5e7eb;
       --muted: #94a3b8;
-      --line: #1f2937;
-      --line-soft: #243044;
-      --blue: #3b82f6;
-      --green: #22c55e;
-      --gold: #f59e0b;
-      --purple: #9333ea;
-      --red: #ef4444;
-      --teal: #14b8a6;
-      --sticky-id-width: 110px;
-      --sticky-name-width: 200px;
-      --sticky-left-name: 110px;
-      --radius: 18px;
+      --accent: #2563eb;
+      --accent-2: #1d4ed8;
+      --good: #16a34a;
+      --bad: #dc2626;
+      --warn: #d97706;
+      --input: #0b1220;
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(180deg, #08111f, #0f172a);
+      background: var(--bg);
       color: var(--text);
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button, input, select, textarea {
-      font: inherit;
+    .page {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 20px;
     }
 
     .topbar {
-      background: #0b1220;
-      border-bottom: 1px solid var(--line-soft);
-      padding: 22px 24px;
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      backdrop-filter: blur(10px);
-    }
-
-    .topbar-shell {
-      max-width: 1720px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .topbar h1 {
-      margin: 0;
-      font-size: 30px;
-      line-height: 1.15;
-      color: #ffffff;
-    }
-
-    .topbar p {
-      margin: 8px 0 0;
-      color: #cbd5e1;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .top-links {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .pill-link {
-      display: inline-flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid #334155;
-      background: #111827;
-      color: #f8fafc;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    .title-wrap p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .version-badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
       font-size: 13px;
-      font-weight: 700;
-      white-space: nowrap;
+      color: var(--muted);
     }
 
-    .pill-link.primary {
-      background: var(--blue);
-      border-color: transparent;
+    .status-bar {
+      margin-bottom: 18px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      font-size: 14px;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
     }
 
-    .pill-link.purple {
-      background: var(--purple);
-      border-color: transparent;
-    }
+    .status-ok { color: #bbf7d0; }
+    .status-bad { color: #fecaca; }
+    .status-warn { color: #fde68a; }
 
-    .page-wrap {
-      max-width: 1720px;
-      margin: 0 auto;
-      padding: 22px;
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
     }
 
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-      margin-bottom: 18px;
     }
 
     .card-header {
       padding: 14px 16px;
       border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
-    }
-
-    .card-header.split {
+      background: var(--panel-2);
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      align-items: end;
-    }
-
-    .card-content {
-      padding: 16px;
-    }
-
-    .section-label {
-      font-size: 11px;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin: 0 0 8px 0;
-      font-weight: 700;
-    }
-
-    .card-header h2, .section-title {
-      margin: 0;
-      font-size: 21px;
-      color: #ffffff;
-      line-height: 1.2;
-    }
-
-    .section-sub {
-      margin-top: 8px;
-      color: #cbd5e1;
-      font-size: 14px;
-      line-height: 1.55;
-      max-width: 980px;
-    }
-
-    .controls {
-      display: grid;
-      grid-template-columns: minmax(280px, 1.3fr) repeat(3, minmax(160px, 220px)) auto;
+      align-items: center;
       gap: 12px;
-      align-items: end;
-    }
-
-    .field-group label,
-    .workspace-grid label,
-    .detail-grid label,
-    .message-grid label {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: #cbd5e1;
-    }
-
-    .field-group input,
-    .field-group select,
-    .workspace-grid input,
-    .workspace-grid select,
-    .workspace-grid textarea,
-    .message-grid textarea,
-    .detail-box textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--line-soft);
-      border-radius: 10px;
-      font-size: 14px;
-      background: #0b1220;
-      color: #f8fafc;
-      outline: none;
-    }
-
-    .field-group input::placeholder,
-    .workspace-grid input::placeholder,
-    .workspace-grid textarea::placeholder,
-    .message-grid textarea::placeholder {
-      color: #7c8aa0;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
       flex-wrap: wrap;
     }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: none;
-      border-radius: 999px;
-      padding: 11px 16px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.2s ease;
-      white-space: nowrap;
+    .card-header h2 {
+      margin: 0;
+      font-size: 18px;
     }
 
-    .btn:disabled {
-      opacity: .55;
-      cursor: not-allowed;
+    .card-body {
+      padding: 16px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .controls input[type="text"],
+    .controls select,
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--input);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .controls .search-wrap {
+      flex: 1 1 260px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s ease;
     }
 
     .btn-primary {
-      background: var(--blue);
-      color: #ffffff;
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-2);
     }
 
     .btn-secondary {
-      background: #1f2937;
-      color: #ffffff;
-      border: 1px solid #334155;
+      background: #334155;
+      color: white;
     }
 
-    .btn-purple {
-      background: var(--purple);
-      color: #ffffff;
+    .btn-secondary:hover {
+      background: #475569;
     }
 
-    .btn-green {
-      background: var(--green);
-      color: #052e16;
-    }
-
-    .btn-gold {
-      background: var(--gold);
-      color: #1f2937;
-    }
-
-    .btn-red {
-      background: #3f1212;
-      color: #fecaca;
-      border: 1px solid #7f1d1d;
-    }
-
-    .btn-soft {
-      background: #0b1220;
-      color: #f8fafc;
-      border: 1px solid var(--line-soft);
-    }
-
-    .btn-small {
-      padding: 8px 12px;
-      font-size: 12px;
-    }
-
-    .status-row {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .stat-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
-      padding: 18px;
-    }
-
-    .stat-title {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    .stat-value {
-      font-size: 30px;
-      font-weight: 800;
-      color: #ffffff;
-      line-height: 1;
-    }
-
-    .stat-note {
-      margin-top: 8px;
-      color: #9fb0c7;
-      font-size: 12px;
-    }
-
-    .message {
-      margin-top: 12px;
-      font-size: 14px;
-      font-weight: 700;
-      min-height: 20px;
-    }
-
-    .message.ok {
-      color: #86efac;
-    }
-
-    .message.error {
-      color: #fca5a5;
-    }
-
-    .endpoint-note {
-      margin-top: 8px;
-      font-size: 12px;
-      color: var(--muted);
-      word-break: break-all;
-      line-height: 1.45;
-    }
-
-    .workspace-shell {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(420px, 0.8fr);
-      gap: 18px;
-    }
-
-    .workspace-left {
-      min-width: 0;
-    }
-
-    .workspace-right {
-      min-width: 0;
-      position: relative;
-    }
-
-    .sticky-workspace {
-      position: sticky;
-      top: 110px;
-      display: grid;
-      gap: 18px;
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .table-wrap {
-      overflow-x: auto;
+      overflow: auto;
+      max-height: 70vh;
       border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #0b1220;
+      border-radius: 12px;
     }
 
     table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      min-width: 2480px;
-      background: #0b1220;
+      border-collapse: collapse;
+      min-width: 980px;
     }
 
-    thead {
-      background: #111827;
-      color: #ffffff;
-    }
-
-    th,
-    td {
-      text-align: left;
-      padding: 10px 9px;
-      border-bottom: 1px solid #1f2937;
-      vertical-align: top;
-      font-size: 13px;
-      background: #0b1220;
-    }
-
-    th {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #dbeafe;
+    thead th {
       position: sticky;
       top: 0;
-      z-index: 6;
-      background: #111827;
-    }
-
-    tbody tr:hover td {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    tbody tr.active-row td {
-      background: rgba(59,130,246,.12);
-    }
-
-    .sticky-id {
-      position: sticky;
-      left: 0;
-      z-index: 5;
-      width: var(--sticky-id-width);
-      min-width: var(--sticky-id-width);
-      max-width: var(--sticky-id-width);
-      background: #0b1220;
-      box-shadow: 1px 0 0 #1f2937;
-    }
-
-    th.sticky-id {
-      z-index: 8;
-      background: #111827;
-    }
-
-    .sticky-name {
-      position: sticky;
-      left: var(--sticky-left-name);
-      z-index: 5;
-      width: var(--sticky-name-width);
-      min-width: var(--sticky-name-width);
-      max-width: var(--sticky-name-width);
-      background: #0b1220;
-      box-shadow: 1px 0 0 #1f2937;
-    }
-
-    th.sticky-name {
-      z-index: 8;
-      background: #111827;
-    }
-
-    tbody tr:hover td.sticky-id,
-    tbody tr:hover td.sticky-name,
-    tbody tr.active-row td.sticky-id,
-    tbody tr.active-row td.sticky-name {
-      background: #132033;
-    }
-
-    .col-created { min-width: 145px; }
-    .col-email { min-width: 210px; max-width: 210px; word-break: break-word; }
-    .col-phone { min-width: 130px; }
-    .col-customer-type { min-width: 120px; }
-    .col-order-type { min-width: 130px; }
-    .col-plan { min-width: 150px; }
-    .col-device { min-width: 180px; max-width: 180px; }
-    .col-tv { min-width: 80px; }
-    .col-fulfillment { min-width: 145px; }
-    .col-order-status { min-width: 165px; }
-    .col-payment { min-width: 150px; }
-    .col-delivery { min-width: 145px; }
-    .col-support { min-width: 145px; }
-    .col-contact { min-width: 130px; }
-    .col-reply { min-width: 130px; }
-    .col-notes { min-width: 240px; max-width: 240px; }
-    .col-actions { min-width: 148px; }
-
-    .pill {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
+      background: #162032;
+      z-index: 1;
+      text-align: left;
+      font-size: 13px;
+      color: #cbd5e1;
+      border-bottom: 1px solid var(--line);
+      padding: 11px 10px;
       white-space: nowrap;
     }
 
-    .pill-blue {
-      background: rgba(59,130,246,.18);
-      color: #bfdbfe;
-      border: 1px solid rgba(59,130,246,.35);
+    tbody td {
+      border-bottom: 1px solid #1e293b;
+      padding: 10px;
+      font-size: 14px;
+      vertical-align: top;
     }
 
-    .pill-gold {
-      background: rgba(245,158,11,.16);
-      color: #fde68a;
-      border: 1px solid rgba(245,158,11,.30);
+    tbody tr {
+      cursor: pointer;
+    }
+
+    tbody tr:hover {
+      background: rgba(37, 99, 235, 0.12);
+    }
+
+    tbody tr.active {
+      background: rgba(37, 99, 235, 0.2);
+      outline: 1px solid rgba(96, 165, 250, 0.45);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 1.2;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .pill-gray {
+      background: #1f2937;
+      color: #cbd5e1;
+      border-color: #374151;
     }
 
     .pill-green {
-      background: rgba(34,197,94,.16);
+      background: rgba(22, 163, 74, 0.18);
       color: #bbf7d0;
-      border: 1px solid rgba(34,197,94,.30);
+      border-color: rgba(22, 163, 74, 0.45);
     }
 
-    .pill-purple {
-      background: rgba(147,51,234,.18);
-      color: #e9d5ff;
-      border: 1px solid rgba(147,51,234,.28);
+    .pill-yellow {
+      background: rgba(217, 119, 6, 0.18);
+      color: #fde68a;
+      border-color: rgba(217, 119, 6, 0.45);
     }
 
     .pill-red {
-      background: rgba(239,68,68,.14);
+      background: rgba(220, 38, 38, 0.18);
       color: #fecaca;
-      border: 1px solid rgba(239,68,68,.28);
+      border-color: rgba(220, 38, 38, 0.45);
     }
 
-    .pill-other {
-      background: rgba(148,163,184,.15);
-      color: #e2e8f0;
-      border: 1px solid rgba(148,163,184,.25);
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    .small {
+    .stat {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0b1220;
+    }
+
+    .stat-label {
       font-size: 12px;
       color: var(--muted);
-      line-height: 1.45;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+      margin-bottom: 16px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0b1220;
+    }
+
+    .meta-item .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .meta-item .value {
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-field label {
+      display: block;
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    .form-field.full {
+      grid-column: 1 / -1;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .empty-state {
+      padding: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      color: var(--muted);
+      background: #0b1220;
+      font-size: 14px;
     }
 
     .muted {
       color: var(--muted);
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 40px 16px;
-      color: var(--muted);
-      font-size: 15px;
-    }
-
-    .id-cell {
-      font-weight: 700;
-      color: #c4b5fd;
-    }
-
-    .name-cell {
-      font-weight: 700;
-      color: #ffffff;
-      word-break: break-word;
-    }
-
-    .readonly-box {
-      line-height: 1.4;
-      word-break: break-word;
-    }
-
-    .workspace-card,
-    .detail-box,
-    .message-box {
-      background: var(--panel-soft);
-      border: 1px solid var(--line-soft);
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    .workspace-card h3,
-    .detail-box h3,
-    .message-box h3 {
-      margin: 0 0 10px 0;
-      color: #ffffff;
-      font-size: 18px;
-      line-height: 1.25;
-    }
-
-    .workspace-grid,
-    .detail-grid,
-    .message-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .workspace-grid.two-col,
-    .detail-grid.two-col {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .summary-row {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .summary-chip {
-      background: #0b1220;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-    }
-
-    .summary-chip .label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      color: var(--muted);
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .summary-chip .value {
-      font-size: 15px;
-      font-weight: 700;
-      line-height: 1.35;
-      color: #ffffff;
-      word-break: break-word;
-    }
-
-    .selected-order-empty {
-      color: var(--muted);
-      line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .message-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .message-tab {
-      padding: 9px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--line-soft);
-      background: #0b1220;
-      color: #f8fafc;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .message-tab.active {
-      background: var(--blue);
-      border-color: transparent;
-    }
-
-    .message-preview {
-      min-height: 260px;
-      white-space: pre-wrap;
-      line-height: 1.55;
-    }
-
-    .workflow-strip {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .workflow-step {
-      background: #0b1220;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-    }
-
-    .workflow-step .step-top {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      font-weight: 700;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .workflow-step .step-body {
-      font-size: 13px;
-      line-height: 1.45;
-      color: #e2e8f0;
-    }
-
-    .price-callout {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-top: 6px;
-      padding: 14px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(59,130,246,.16), rgba(147,51,234,.14));
-      border: 1px solid rgba(96,165,250,.25);
-    }
-
-    .price-callout .quote-amount {
-      font-size: 34px;
-      font-weight: 800;
-      line-height: 1;
-      color: #ffffff;
-    }
-
-    .inline-note {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #9fb0c7;
-      line-height: 1.45;
-    }
-
-    .footer-strip {
+    .footer {
       margin-top: 18px;
-      padding: 18px 10px 26px;
-      border-top: 1px solid var(--line-soft);
       text-align: center;
-      color: #cbd5e1;
-      font-size: 0.92rem;
-    }
-
-    .footer-strip .version {
-      margin-top: 6px;
       color: var(--muted);
-      font-size: 0.82rem;
+      font-size: 12px;
+      padding-bottom: 12px;
     }
 
-    @media (max-width: 1540px) {
-      .workspace-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .sticky-workspace {
-        position: static;
-      }
-
-      .status-row {
-        grid-template-columns: repeat(3, 1fr);
-      }
-
-      .controls {
-        grid-template-columns: 1fr 1fr 1fr;
-      }
-
-      .workflow-strip,
-      .summary-row {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media (max-width: 980px) {
-      .topbar-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .top-links {
-        justify-content: flex-start;
-      }
-
-      .controls,
-      .workspace-grid.two-col,
-      .detail-grid.two-col,
-      .workflow-strip,
-      .summary-row,
-      .status-row {
+    @media (max-width: 1100px) {
+      .layout {
         grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 720px) {
-      .page-wrap {
-        padding: 14px;
+    @media (max-width: 700px) {
+      .stats,
+      .meta-grid,
+      .form-grid {
+        grid-template-columns: 1fr;
       }
 
       .topbar {
-        padding: 18px 16px;
-      }
-
-      .topbar h1 {
-        font-size: 24px;
-      }
-
-      .card-header.split {
-        display: block;
+        align-items: flex-start;
       }
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="topbar-shell">
-      <div>
-        <h1>4MyIPTV Service Admin Orders</h1>
-        <p>Internal order management, quote review, payment request handling, and customer handoff control.</p>
+  <div class="page">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>Admin Orders</h1>
+        <p>Load orders, select an order, and save only the admin update fields back to Orders.</p>
       </div>
-      <div class="top-links">
-        <a class="pill-link" href="admin-dashboard.html">Admin Dashboard</a>
-        <a class="pill-link" href="admin-resource-center.html">Resource Center</a>
-        <a class="pill-link purple" href="admin-checkout-link-generator.html">Checkout Link Generator</a>
-        <button class="pill-link primary" id="topRefreshBtn" type="button">Refresh Orders</button>
-      </div>
+      <div class="version-badge">Version 1.0.0</div>
     </div>
-  </div>
 
-  <div class="page-wrap">
-    <div class="card">
-      <div class="card-header">
-        <div class="section-label">Admin Controls</div>
-        <h2>Order Search and Filters</h2>
-      </div>
-      <div class="card-content">
-        <div class="controls">
-          <div class="field-group">
-            <label for="searchInput">Search Orders</label>
-            <input type="text" id="searchInput" placeholder="Search by request ID, name, email, phone, device, notes, status..." />
-          </div>
+    <div id="statusBar" class="status-bar">
+      <span class="status-warn">Ready.</span>
+    </div>
 
-          <div class="field-group">
-            <label for="statusFilter">Status Filter</label>
-            <select id="statusFilter">
-              <option value="">All Statuses</option>
-              <option value="NEW">New</option>
-              <option value="UNDER REVIEW">Under Review</option>
-              <option value="QUOTE READY">Quote Ready</option>
-              <option value="QUOTE SENT">Quote Sent</option>
-              <option value="PAYMENT SENT">Payment Sent</option>
-              <option value="PAID">Paid</option>
-              <option value="PAYMENT RECEIVED">Payment Received</option>
-              <option value="SETUP SCHEDULED">Setup Scheduled</option>
-              <option value="COMPLETE">Complete</option>
-              <option value="COMPLETED">Completed</option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <label for="paymentFilter">Payment Filter</label>
-            <select id="paymentFilter">
-              <option value="">All Payment States</option>
-              <option value="UNPAID">Unpaid</option>
-              <option value="PENDING">Pending</option>
-              <option value="PAYMENT SENT">Payment Sent</option>
-              <option value="PAID">Paid</option>
-              <option value="PAYMENT RECEIVED">Payment Received</option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <label for="sortFilter">Sort</label>
-            <select id="sortFilter">
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="name">Name A-Z</option>
-              <option value="status">Status A-Z</option>
-            </select>
-          </div>
-
-          <div class="button-row">
-            <button class="btn btn-primary" id="refreshBtn" type="button">Refresh Orders</button>
-            <button class="btn btn-secondary" id="clearBtn" type="button">Clear Filters</button>
+    <div class="layout">
+      <section class="card">
+        <div class="card-header">
+          <h2>Orders List</h2>
+          <div class="controls">
+            <div class="search-wrap">
+              <input id="searchInput" type="text" placeholder="Search by Order ID, customer, email, phone, device, or status" />
+            </div>
+            <button id="refreshBtn" class="btn btn-secondary" type="button">Refresh</button>
           </div>
         </div>
-
-        <div id="message" class="message"></div>
-        <div id="endpointNote" class="endpoint-note"></div>
-      </div>
-    </div>
-
-    <div class="status-row">
-      <div class="stat-card">
-        <div class="stat-title">Total Orders</div>
-        <div class="stat-value" id="totalOrders">0</div>
-        <div class="stat-note">All loaded rows from the connected endpoint</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-title">Needs Review</div>
-        <div class="stat-value" id="reviewOrders">0</div>
-        <div class="stat-note">New + under review</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-title">Quote / Payment Sent</div>
-        <div class="stat-value" id="paymentSentOrders">0</div>
-        <div class="stat-note">Quoted and waiting on customer payment</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-title">Paid</div>
-        <div class="stat-value" id="paidOrders">0</div>
-        <div class="stat-note">Payment confirmed, ready for fulfillment</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-title">Complete</div>
-        <div class="stat-value" id="completeOrders">0</div>
-        <div class="stat-note">Closed orders only</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-title">Filtered View</div>
-        <div class="stat-value" id="filteredOrders">0</div>
-        <div class="stat-note">Rows currently visible in the table</div>
-      </div>
-    </div>
-
-    <div class="workspace-shell">
-      <div class="workspace-left">
-        <div class="card">
-          <div class="card-header split">
-            <div>
-              <div class="section-label">Live Request Intake</div>
-              <h2>Order Review Table</h2>
-              <div class="section-sub">
-                Select any request to load it into the quote and payment workspace. This preserves the live orders table while adding the missing internal quote workflow directly into this page.
-              </div>
+        <div class="card-body">
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-label">Total Orders</div>
+              <div id="statTotal" class="stat-value">0</div>
             </div>
-            <div class="small">
-              Sticky Request ID and Customer Name remain locked for horizontal scrolling.
+            <div class="stat">
+              <div class="stat-label">Quoted</div>
+              <div id="statQuoted" class="stat-value">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Paid</div>
+              <div id="statPaid" class="stat-value">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Open Balance</div>
+              <div id="statBalance" class="stat-value">$0.00</div>
             </div>
           </div>
-          <div class="card-content">
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th class="sticky-id">Request ID</th>
-                    <th class="sticky-name">Customer Name</th>
-                    <th class="col-created">Created</th>
-                    <th class="col-email">Email</th>
-                    <th class="col-phone">Phone</th>
-                    <th class="col-contact">Preferred Contact</th>
-                    <th class="col-reply">Reply Time</th>
-                    <th class="col-customer-type">Customer Type</th>
-                    <th class="col-order-type">Order Type</th>
-                    <th class="col-plan">Plan Interest</th>
-                    <th class="col-device">Device Selected</th>
-                    <th class="col-tv">TV Count</th>
-                    <th class="col-fulfillment">Fulfillment Type</th>
-                    <th class="col-order-status">Order Status</th>
-                    <th class="col-payment">Payment Status</th>
-                    <th class="col-delivery">Delivery Status</th>
-                    <th class="col-support">Support Route</th>
-                    <th class="col-notes">Internal Notes / Customer Notes</th>
-                    <th class="col-actions">Review</th>
-                  </tr>
-                </thead>
-                <tbody id="ordersTableBody">
-                  <tr>
-                    <td colspan="19" class="empty-state">Loading orders.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="inline-note">
-              This page now uses one shared Apps Script endpoint for request intake and admin review. The quote workspace below can save to the sheet and still keeps a local backup draft by request ID.
-            </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Service Plan</th>
+                  <th>Device</th>
+                  <th>Quoted Price</th>
+                  <th>Amount Paid</th>
+                  <th>Balance Due</th>
+                  <th>Payment Status</th>
+                  <th>Current Status</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody">
+                <tr>
+                  <td colspan="9" class="muted">Loading orders...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="workspace-right">
-        <div class="sticky-workspace">
-          <div class="workspace-card">
-            <div class="section-label">Internal Quote Workspace</div>
-            <h3>Selected Order Snapshot</h3>
-            <div id="selectedOrderWrap" class="selected-order-empty">
-              Select a row from the table to load the order into the quote and payment workspace.
-            </div>
-            <div id="actionSummaryWrap" class="detail-box" style="margin-top:12px;">
-              <h3>Next Move</h3>
-              <div class="small muted">Load an order to see the recommended next action and outbound message path.</div>
-            </div>
+      <section class="card">
+        <div class="card-header">
+          <h2>Order Editor</h2>
+        </div>
+        <div class="card-body">
+          <div id="emptyEditor" class="empty-state">
+            Select an order from the table to edit the admin update fields.
           </div>
 
-          <div class="workspace-card">
-            <div class="section-label">Quote Builder</div>
-            <h3>Review Quote and Payment Details</h3>
-
-            <div class="workflow-strip">
-              <div class="workflow-step">
-                <div class="step-top">Step 1</div>
-                <div class="step-body">Review the request details and choose the final plan and device package.</div>
+          <div id="editorContent" style="display:none;">
+            <div class="meta-grid">
+              <div class="meta-item">
+                <div class="label">Order ID</div>
+                <div class="value" id="metaOrderId">-</div>
               </div>
-              <div class="workflow-step">
-                <div class="step-top">Step 2</div>
-                <div class="step-body">Set the quote amount and payment method you want to send.</div>
+              <div class="meta-item">
+                <div class="label">Customer Name</div>
+                <div class="value" id="metaCustomerName">-</div>
               </div>
-              <div class="workflow-step">
-                <div class="step-top">Step 3</div>
-                <div class="step-body">Copy the quote or payment request message below and send it to the customer.</div>
+              <div class="meta-item">
+                <div class="label">Phone</div>
+                <div class="value" id="metaPhone">-</div>
               </div>
-              <div class="workflow-step">
-                <div class="step-top">Step 4</div>
-                <div class="step-body">Move the order status to payment sent, paid, or complete as the job progresses.</div>
+              <div class="meta-item">
+                <div class="label">Email</div>
+                <div class="value" id="metaEmail">-</div>
               </div>
-              <div class="workflow-step">
-                <div class="step-top">Step 5</div>
-                <div class="step-body">Use support route and handoff messaging after payment is confirmed.</div>
+              <div class="meta-item">
+                <div class="label">Order Category</div>
+                <div class="value" id="metaOrderCategory">-</div>
               </div>
-              <div class="workflow-step">
-                <div class="step-top">Step 6</div>
-                <div class="step-body">Checkout generator page is not live in this repo yet. Use the Payment Link field manually for now.</div>
+              <div class="meta-item">
+                <div class="label">Preferred Contact Method</div>
+                <div class="value" id="metaPreferredContact">-</div>
               </div>
-            </div>
-
-            <div class="workspace-grid two-col" style="margin-top:16px;">
-              <div class="field-group">
-                <label for="finalPlan">Final Service Plan</label>
-                <select id="finalPlan">
-                  <option value="">Select final service plan</option>
-                  <option value="Monthly - $15">Monthly - $15</option>
-                  <option value="Yearly - $120">Yearly - $120</option>
-                  <option value="2 Years - $200">2 Years - $200</option>
-                  <option value="Custom Quote">Custom Quote</option>
-                </select>
+              <div class="meta-item">
+                <div class="label">Service Plan Requested</div>
+                <div class="value" id="metaServicePlan">-</div>
               </div>
-
-              <div class="field-group">
-                <label for="finalDevice">Final Device Package</label>
-                <select id="finalDevice">
-                  <option value="">No device selected</option>
-                  <option value="Service Only - $0">Service Only - $0</option>
-                  <option value="Onn 4K Streaming Device - $35">Onn 4K Streaming Device - $35</option>
-                  <option value="Onn 4K Plus - $65">Onn 4K Plus - $65</option>
-                  <option value="Onn 4K Pro - $85">Onn 4K Pro - $85</option>
-                  <option value="Google TV Streamer 4K - $150">Google TV Streamer 4K - $150</option>
-                  <option value="NVIDIA Shield TV Pro - $300">NVIDIA Shield TV Pro - $300</option>
-                  <option value="Custom Device Quote">Custom Device Quote</option>
-                </select>
+              <div class="meta-item">
+                <div class="label">Device Requested</div>
+                <div class="value" id="metaDeviceRequested">-</div>
               </div>
-
-              <div class="field-group">
-                <label for="quoteAmount">Final Quote Amount</label>
-                <input id="quoteAmount" type="number" min="0" step="0.01" placeholder="0.00" />
+              <div class="meta-item">
+                <div class="label">Shipping Needed</div>
+                <div class="value" id="metaShippingNeeded">-</div>
               </div>
-
-              <div class="field-group">
-                <label for="amountPaid">Amount Paid</label>
-                <input id="amountPaid" type="number" min="0" step="0.01" placeholder="0.00" />
-              </div>
-
-              <div class="field-group">
-                <label for="balanceDue">Balance Due</label>
-                <input id="balanceDue" type="text" placeholder="0.00" readonly />
-              </div>
-
-              <div class="field-group">
-                <label for="paymentMethod">Payment Method</label>
-                <select id="paymentMethod">
-                  <option value="">Select payment method</option>
-                  <option value="Cash App">Cash App</option>
-                  <option value="Zelle">Zelle</option>
-                  <option value="PayPal">PayPal</option>
-                  <option value="Crypto">Crypto</option>
-                  <option value="Checkout Link">Checkout Link</option>
-                  <option value="In Person">In Person</option>
-                </select>
-              </div>
-
-              <div class="field-group">
-                <label for="paymentLink">Payment Link or Instructions</label>
-                <input id="paymentLink" type="text" placeholder="Paste payment link or short payment instruction" />
-              </div>
-
-              <div class="field-group">
-                <label for="supportRoute">Support Route After Payment</label>
-                <select id="supportRoute">
-                  <option value="">Select support route</option>
-                  <option value="support.html">Device Support</option>
-                  <option value="online-support.html">Online Support</option>
-                  <option value="device-setup.html">Device Setup</option>
-                  <option value="downloader-portal.html">Downloader Portal</option>
-                </select>
-              </div>
-
-              <div class="field-group">
-                <label for="orderStatusSelect">Order Status</label>
-                <select id="orderStatusSelect">
-                  <option value="">Select order status</option>
-                  <option value="NEW">NEW</option>
-                  <option value="UNDER REVIEW">UNDER REVIEW</option>
-                  <option value="QUOTE READY">QUOTE READY</option>
-                  <option value="QUOTE SENT">QUOTE SENT</option>
-                  <option value="PAYMENT SENT">PAYMENT SENT</option>
-                  <option value="PAID">PAID</option>
-                  <option value="SETUP SCHEDULED">SETUP SCHEDULED</option>
-                  <option value="COMPLETE">COMPLETE</option>
-                </select>
-              </div>
-
-              <div class="field-group">
-                <label for="paymentStatusSelect">Payment Status</label>
-                <select id="paymentStatusSelect">
-                  <option value="">Select payment status</option>
-                  <option value="QUOTE PENDING">QUOTE PENDING</option>
-                  <option value="UNPAID">UNPAID</option>
-                  <option value="PENDING">PENDING</option>
-                  <option value="PAYMENT SENT">PAYMENT SENT</option>
-                  <option value="PAID">PAID</option>
-                  <option value="PAYMENT RECEIVED">PAYMENT RECEIVED</option>
-                </select>
+              <div class="meta-item">
+                <div class="label">Setup Type</div>
+                <div class="value" id="metaSetupType">-</div>
               </div>
             </div>
 
-            <div class="workspace-grid" style="margin-top:12px;">
-              <div class="field-group">
-                <label for="workspaceNotes">Internal Quote Notes</label>
-                <textarea id="workspaceNotes" rows="4" placeholder="Add package notes, delivery notes, customer preferences, or anything you need to remember for this quote."></textarea>
+            <form id="orderForm">
+              <input type="hidden" id="orderId" />
+
+              <div class="form-grid">
+                <div class="form-field">
+                  <label for="quotedPrice">Quoted Price</label>
+                  <input id="quotedPrice" type="text" placeholder="Example: 150" />
+                </div>
+
+                <div class="form-field">
+                  <label for="amountPaid">Amount Paid</label>
+                  <input id="amountPaid" type="text" placeholder="Example: 50" />
+                </div>
+
+                <div class="form-field">
+                  <label for="balanceDue">Balance Due</label>
+                  <input id="balanceDue" type="text" placeholder="Auto-calculates when possible" />
+                </div>
+
+                <div class="form-field">
+                  <label for="paymentStatus">Payment Status</label>
+                  <select id="paymentStatus">
+                    <option value="">Select</option>
+                    <option value="Not Paid">Not Paid</option>
+                    <option value="Quoted">Quoted</option>
+                    <option value="Partial">Partial</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Refunded">Refunded</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="paymentMethod">Payment Method</label>
+                  <select id="paymentMethod">
+                    <option value="">Select</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Cash App">Cash App</option>
+                    <option value="Zelle">Zelle</option>
+                    <option value="PayPal">PayPal</option>
+                    <option value="Crypto">Crypto</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="currentStatus">Current Status</label>
+                  <select id="currentStatus">
+                    <option value="">Select</option>
+                    <option value="New">New</option>
+                    <option value="Quoted">Quoted</option>
+                    <option value="Awaiting Payment">Awaiting Payment</option>
+                    <option value="Paid">Paid</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Ready">Ready</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Closed">Closed</option>
+                    <option value="Issue">Issue</option>
+                  </select>
+                </div>
+
+                <div class="form-field full">
+                  <label for="internalNotes">Internal Notes</label>
+                  <textarea id="internalNotes" placeholder="Internal notes only"></textarea>
+                </div>
               </div>
-            </div>
 
-            <div class="price-callout">
-              <div>
-                <div class="section-label" style="margin-bottom:4px;">Suggested Total</div>
-                <div class="small">Plan + device pricing combined from the quote builder selections</div>
+              <div class="editor-actions">
+                <button id="resetBtn" class="btn btn-secondary" type="button">Reset</button>
+                <button id="saveBtn" class="btn btn-primary" type="submit">Save to Sheet</button>
               </div>
-              <div class="quote-amount" id="suggestedQuoteDisplay">$0.00</div>
-            </div>
-
-            <div class="button-row" style="margin-top:14px;">
-              <button class="btn btn-green" id="saveDraftBtn" type="button" disabled>Save to Sheet</button>
-              <button class="btn btn-secondary" id="loadSuggestionBtn" type="button" disabled>Use Suggested Total</button>
-              <button class="btn btn-purple" id="openGeneratorBtn" type="button">Open Checkout Generator</button>
-              <button class="btn btn-red" id="clearDraftBtn" type="button" disabled>Clear Local Draft</button>
-            </div>
-
-            <div class="detail-box" style="margin-top:12px;">
-              <h3>Quick Status Actions</h3>
-              <div class="button-row" style="margin-top:10px;">
-                <button class="btn btn-secondary" id="setQuoteReadyBtn" type="button" disabled>Set Quote Ready</button>
-                <button class="btn btn-gold" id="setPaymentSentBtn" type="button" disabled>Set Payment Sent</button>
-                <button class="btn btn-green" id="setPaidBtn" type="button" disabled>Mark Paid</button>
-                <button class="btn btn-soft" id="setCompleteBtn" type="button" disabled>Mark Complete</button>
-              </div>
-            </div>
-
-            <div id="draftMessage" class="message"></div>
-          </div>
-
-          <div class="message-box">
-            <div class="section-label">Customer Message Output</div>
-            <h3>Copy Ready Messages</h3>
-
-            <div class="message-tabs">
-              <button class="message-tab active" type="button" data-tab="quote">Quote Message</button>
-              <button class="message-tab" type="button" data-tab="payment">Payment Request</button>
-              <button class="message-tab" type="button" data-tab="paid">Paid Confirmation</button>
-              <button class="message-tab" type="button" data-tab="support">Support Handoff</button>
-            </div>
-
-            <div class="message-grid">
-              <div class="field-group">
-                <label for="messagePreview">Preview</label>
-                <textarea id="messagePreview" class="message-preview" rows="12" readonly></textarea>
-              </div>
-            </div>
-
-            <div class="button-row" style="margin-top:12px;">
-              <button class="btn btn-primary" id="copyMessageBtn" type="button" disabled>Copy Current Message</button>
-              <button class="btn btn-soft" id="copyInternalSummaryBtn" type="button" disabled>Copy Internal Summary</button>
-              <button class="btn btn-gold" id="openPaymentLinkBtn" type="button" disabled>Open Payment Link</button>
-            </div>
-
-            <div class="inline-note">
-              These messages are generated from the selected order and your quote workspace values. This gives you a working internal quote and payment step with copy-ready outbound messages, while keeping the process controlled.
-            </div>
+            </form>
           </div>
         </div>
-      </div>
+      </section>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <div class="section-label">Operational Notes</div>
-        <h2>How to Use This Page</h2>
-      </div>
-      <div class="card-content">
-        <div class="summary-row">
-          <div class="summary-chip">
-            <div class="label">Review</div>
-            <div class="value">Load a request from the table and verify the customer information first.</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Quote</div>
-            <div class="value">Set the final plan, device package, quote amount, and payment method in the workspace, then save it back to the sheet.</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Send</div>
-            <div class="value">Copy the quote or payment request message, send it, then move the status forward with the quick actions.</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Handoff</div>
-            <div class="value">After payment, use the support route and confirmation message so the customer lands in the right place.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-strip">
-      <strong>4MyIPTV Service • Admin Orders</strong>
-      <div class="version">Version 2.8 • Last Updated: April 5, 2026</div>
-    </div>
+    <div class="footer">4MyIPTV Service - Admin Orders - Version 1.0.0</div>
   </div>
 
   <script>
-   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqYVmQVKoEqH64X23hB2w0oXS-uQD8nAYwzS2S1jlOhFqqfxl4af-97grKFbAFe_7kMw/exec";
-    const DRAFT_KEY_PREFIX = "iptv-order-draft-";
-
-    const PLAN_PRICING = {
-      "Monthly - $15": 15,
-      "Yearly - $120": 120,
-      "2 Years - $200": 200
-    };
-
-    const DEVICE_PRICING = {
-      "Service Only - $0": 0,
-      "Onn 4K Streaming Device - $35": 35,
-      "Onn 4K Plus - $65": 65,
-      "Onn 4K Pro - $85": 85,
-      "Google TV Streamer 4K - $150": 150,
-      "NVIDIA Shield TV Pro - $300": 300
-    };
+    const SCRIPT_URL = 'PASTE_YOUR_WEB_APP_EXEC_URL_HERE';
+    const LOAD_ACTION = 'getOrders';
+    const SAVE_ACTION = 'updateAdminOrder';
 
     let allOrders = [];
-    let selectedOrderId = "";
-    let activeMessageTab = "quote";
+    let filteredOrders = [];
+    let selectedOrderId = '';
 
-    const messageEl = document.getElementById("message");
-    const endpointNoteEl = document.getElementById("endpointNote");
-    const ordersTableBody = document.getElementById("ordersTableBody");
+    const els = {
+      statusBar: document.getElementById('statusBar'),
+      searchInput: document.getElementById('searchInput'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      ordersTableBody: document.getElementById('ordersTableBody'),
+      statTotal: document.getElementById('statTotal'),
+      statQuoted: document.getElementById('statQuoted'),
+      statPaid: document.getElementById('statPaid'),
+      statBalance: document.getElementById('statBalance'),
+      emptyEditor: document.getElementById('emptyEditor'),
+      editorContent: document.getElementById('editorContent'),
+      orderForm: document.getElementById('orderForm'),
+      orderId: document.getElementById('orderId'),
+      quotedPrice: document.getElementById('quotedPrice'),
+      amountPaid: document.getElementById('amountPaid'),
+      balanceDue: document.getElementById('balanceDue'),
+      paymentStatus: document.getElementById('paymentStatus'),
+      paymentMethod: document.getElementById('paymentMethod'),
+      currentStatus: document.getElementById('currentStatus'),
+      internalNotes: document.getElementById('internalNotes'),
+      resetBtn: document.getElementById('resetBtn'),
+      saveBtn: document.getElementById('saveBtn'),
+      metaOrderId: document.getElementById('metaOrderId'),
+      metaCustomerName: document.getElementById('metaCustomerName'),
+      metaPhone: document.getElementById('metaPhone'),
+      metaEmail: document.getElementById('metaEmail'),
+      metaOrderCategory: document.getElementById('metaOrderCategory'),
+      metaPreferredContact: document.getElementById('metaPreferredContact'),
+      metaServicePlan: document.getElementById('metaServicePlan'),
+      metaDeviceRequested: document.getElementById('metaDeviceRequested'),
+      metaShippingNeeded: document.getElementById('metaShippingNeeded'),
+      metaSetupType: document.getElementById('metaSetupType')
+    };
 
-    const searchInput = document.getElementById("searchInput");
-    const statusFilter = document.getElementById("statusFilter");
-    const paymentFilter = document.getElementById("paymentFilter");
-    const sortFilter = document.getElementById("sortFilter");
-    const refreshBtn = document.getElementById("refreshBtn");
-    const topRefreshBtn = document.getElementById("topRefreshBtn");
-    const clearBtn = document.getElementById("clearBtn");
+    document.addEventListener('DOMContentLoaded', init);
 
-    const totalOrdersEl = document.getElementById("totalOrders");
-    const reviewOrdersEl = document.getElementById("reviewOrders");
-    const paymentSentOrdersEl = document.getElementById("paymentSentOrders");
-    const paidOrdersEl = document.getElementById("paidOrders");
-    const completeOrdersEl = document.getElementById("completeOrders");
-    const filteredOrdersEl = document.getElementById("filteredOrders");
+    function init() {
+      bindEvents();
+      loadOrders();
+    }
 
-    const selectedOrderWrap = document.getElementById("selectedOrderWrap");
-    const actionSummaryWrap = document.getElementById("actionSummaryWrap");
-    const finalPlanEl = document.getElementById("finalPlan");
-    const finalDeviceEl = document.getElementById("finalDevice");
-    const quoteAmountEl = document.getElementById("quoteAmount");
-    const amountPaidEl = document.getElementById("amountPaid");
-    const balanceDueEl = document.getElementById("balanceDue");
-    const paymentMethodEl = document.getElementById("paymentMethod");
-    const paymentLinkEl = document.getElementById("paymentLink");
-    const supportRouteEl = document.getElementById("supportRoute");
-    const orderStatusSelectEl = document.getElementById("orderStatusSelect");
-    const paymentStatusSelectEl = document.getElementById("paymentStatusSelect");
-    const workspaceNotesEl = document.getElementById("workspaceNotes");
-    const suggestedQuoteDisplayEl = document.getElementById("suggestedQuoteDisplay");
-    const draftMessageEl = document.getElementById("draftMessage");
+    function bindEvents() {
+      els.refreshBtn.addEventListener('click', loadOrders);
+      els.searchInput.addEventListener('input', applyFilter);
+      els.orderForm.addEventListener('submit', handleSave);
+      els.resetBtn.addEventListener('click', resetEditorToSelected);
+      els.quotedPrice.addEventListener('input', maybeAutoBalance);
+      els.amountPaid.addEventListener('input', maybeAutoBalance);
+    }
 
-    const saveDraftBtn = document.getElementById("saveDraftBtn");
-    const clearDraftBtn = document.getElementById("clearDraftBtn");
-    const loadSuggestionBtn = document.getElementById("loadSuggestionBtn");
-    const openGeneratorBtn = document.getElementById("openGeneratorBtn");
-    const setQuoteReadyBtn = document.getElementById("setQuoteReadyBtn");
-    const setPaymentSentBtn = document.getElementById("setPaymentSentBtn");
-    const setPaidBtn = document.getElementById("setPaidBtn");
-    const setCompleteBtn = document.getElementById("setCompleteBtn");
+    function setStatus(message, type = 'warn') {
+      const className =
+        type === 'ok' ? 'status-ok' :
+        type === 'bad' ? 'status-bad' :
+        'status-warn';
 
-    const messagePreviewEl = document.getElementById("messagePreview");
-    const copyMessageBtn = document.getElementById("copyMessageBtn");
-    const copyInternalSummaryBtn = document.getElementById("copyInternalSummaryBtn");
-    const openPaymentLinkBtn = document.getElementById("openPaymentLinkBtn");
+      els.statusBar.innerHTML = '<span class="' + className + '">' + escapeHtml(message) + '</span>';
+    }
 
-    endpointNoteEl.textContent = "Connected order endpoint: " + APPS_SCRIPT_URL;
+    async function loadOrders() {
+      if (!SCRIPT_URL || SCRIPT_URL.includes('PASTE_YOUR_WEB_APP_EXEC_URL_HERE')) {
+        setStatus('Set SCRIPT_URL first. Paste your deployed Apps Script /exec URL into the file.', 'bad');
+        return;
+      }
 
-    function setMessage(text, type = "") {
-      messageEl.textContent = text;
-      messageEl.className = "message";
-      if (type) {
-        messageEl.classList.add(type);
+      setStatus('Loading orders...', 'warn');
+      els.refreshBtn.disabled = true;
+
+      try {
+        const url = new URL(SCRIPT_URL);
+        url.searchParams.set('action', LOAD_ACTION);
+        url.searchParams.set('_', String(Date.now()));
+
+        const response = await fetch(url.toString(), { method: 'GET' });
+        const text = await response.text();
+        const data = safeParseJson(text, 'load');
+        const rawOrders = extractOrders(data);
+
+        allOrders = rawOrders
+          .map(normalizeOrder)
+          .filter(order => order.orderId);
+
+        filteredOrders = [...allOrders];
+
+        renderTable();
+        updateStats();
+
+        if (selectedOrderId) {
+          const stillExists = allOrders.find(order => order.orderId === selectedOrderId);
+          if (stillExists) {
+            selectOrder(selectedOrderId);
+          } else {
+            clearEditor();
+          }
+        }
+
+        setStatus('Orders loaded successfully.', 'ok');
+      } catch (error) {
+        console.error(error);
+        setStatus('Load failed: ' + error.message, 'bad');
+        els.ordersTableBody.innerHTML = '<tr><td colspan="9" class="muted">Unable to load orders.</td></tr>';
+      } finally {
+        els.refreshBtn.disabled = false;
       }
     }
 
-    function setDraftMessage(text, type = "") {
-      draftMessageEl.textContent = text;
-      draftMessageEl.className = "message";
-      if (type) {
-        draftMessageEl.classList.add(type);
+    function extractOrders(data) {
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.orders)) return data.orders;
+      if (data && Array.isArray(data.data)) return data.data;
+      if (data && Array.isArray(data.records)) return data.records;
+      throw new Error('Load response was not an array or an object containing an orders array.');
+    }
+
+    function normalizeOrder(row) {
+      const order = {
+        raw: row,
+        orderId: pick(row, ['Order ID', 'orderId', 'OrderId', 'ID']),
+        customerName: pick(row, ['Customer Name', 'customerName', 'Full Name', 'Name']),
+        phone: pick(row, ['Phone', 'phone', 'Phone Number']),
+        email: pick(row, ['Email', 'email']),
+        preferredContactMethod: pick(row, ['Preferred Contact Method', 'preferredContactMethod']),
+        orderCategory: pick(row, ['Order Category', 'orderCategory']),
+        servicePlanRequested: pick(row, ['Service Plan Requested', 'servicePlanRequested']),
+        deviceRequested: pick(row, ['Device Requested', 'deviceRequested']),
+        shippingNeeded: pick(row, ['Shipping Needed', 'shippingNeeded']),
+        setupType: pick(row, ['Setup Type', 'setupType']),
+        quotedPrice: cleanMoneyString(pick(row, ['Quoted Price', 'quotedPrice'])),
+        amountPaid: cleanMoneyString(pick(row, ['Amount Paid', 'amountPaid'])),
+        balanceDue: cleanMoneyString(pick(row, ['Balance Due', 'balanceDue'])),
+        paymentStatus: pick(row, ['Payment Status', 'paymentStatus']),
+        paymentMethod: pick(row, ['Payment Method', 'paymentMethod']),
+        currentStatus: pick(row, ['Current Status', 'currentStatus']),
+        internalNotes: pick(row, ['Internal Notes', 'internalNotes']),
+        timestamp: pick(row, ['Timestamp', 'Created At', 'Date', 'Order Date'])
+      };
+
+      return order;
+    }
+
+    function pick(obj, keys) {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== null && obj[key] !== undefined) {
+          return String(obj[key]).trim();
+        }
+      }
+      return '';
+    }
+
+    function cleanMoneyString(value) {
+      if (value === null || value === undefined) return '';
+      const str = String(value).trim();
+      if (!str) return '';
+      return str.replace(/[$,]/g, '');
+    }
+
+    function applyFilter() {
+      const term = els.searchInput.value.trim().toLowerCase();
+
+      if (!term) {
+        filteredOrders = [...allOrders];
+      } else {
+        filteredOrders = allOrders.filter(order => {
+          const haystack = [
+            order.orderId,
+            order.customerName,
+            order.phone,
+            order.email,
+            order.servicePlanRequested,
+            order.deviceRequested,
+            order.paymentStatus,
+            order.currentStatus
+          ].join(' ').toLowerCase();
+
+          return haystack.includes(term);
+        });
+      }
+
+      renderTable();
+      updateStats();
+    }
+
+    function renderTable() {
+      if (!filteredOrders.length) {
+        els.ordersTableBody.innerHTML = '<tr><td colspan="9" class="muted">No matching orders found.</td></tr>';
+        return;
+      }
+
+      els.ordersTableBody.innerHTML = filteredOrders.map(order => {
+        const activeClass = order.orderId === selectedOrderId ? 'active' : '';
+        return `
+          <tr class="${activeClass}" data-order-id="${escapeHtml(order.orderId)}">
+            <td>${escapeHtml(order.orderId || '-')}</td>
+            <td>${escapeHtml(order.customerName || '-')}</td>
+            <td>${escapeHtml(order.servicePlanRequested || '-')}</td>
+            <td>${escapeHtml(order.deviceRequested || '-')}</td>
+            <td>${escapeHtml(formatMoneyDisplay(order.quotedPrice))}</td>
+            <td>${escapeHtml(formatMoneyDisplay(order.amountPaid))}</td>
+            <td>${escapeHtml(formatMoneyDisplay(order.balanceDue))}</td>
+            <td>${statusPill(order.paymentStatus)}</td>
+            <td>${statusPill(order.currentStatus)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      Array.from(els.ordersTableBody.querySelectorAll('tr[data-order-id]')).forEach(row => {
+        row.addEventListener('click', () => {
+          selectOrder(row.getAttribute('data-order-id'));
+        });
+      });
+    }
+
+    function statusPill(value) {
+      const v = String(value || '').trim();
+      if (!v) return '<span class="pill pill-gray">-</span>';
+
+      const lower = v.toLowerCase();
+
+      if (['paid', 'completed', 'closed', 'ready'].includes(lower)) {
+        return '<span class="pill pill-green">' + escapeHtml(v) + '</span>';
+      }
+
+      if (['partial', 'quoted', 'awaiting payment', 'in progress'].includes(lower)) {
+        return '<span class="pill pill-yellow">' + escapeHtml(v) + '</span>';
+      }
+
+      if (['issue', 'not paid', 'refunded'].includes(lower)) {
+        return '<span class="pill pill-red">' + escapeHtml(v) + '</span>';
+      }
+
+      return '<span class="pill pill-gray">' + escapeHtml(v) + '</span>';
+    }
+
+    function updateStats() {
+      els.statTotal.textContent = String(filteredOrders.length);
+
+      const quotedCount = filteredOrders.filter(order =>
+        String(order.currentStatus || '').toLowerCase() === 'quoted' ||
+        String(order.paymentStatus || '').toLowerCase() === 'quoted'
+      ).length;
+
+      const paidCount = filteredOrders.filter(order =>
+        String(order.paymentStatus || '').toLowerCase() === 'paid'
+      ).length;
+
+      const totalBalance = filteredOrders.reduce((sum, order) => {
+        const num = Number(cleanMoneyString(order.balanceDue));
+        return sum + (isNaN(num) ? 0 : num);
+      }, 0);
+
+      els.statQuoted.textContent = String(quotedCount);
+      els.statPaid.textContent = String(paidCount);
+      els.statBalance.textContent = formatMoneyDisplay(String(totalBalance));
+    }
+
+    function selectOrder(orderId) {
+      const order = allOrders.find(item => item.orderId === orderId);
+      if (!order) return;
+
+      selectedOrderId = orderId;
+
+      els.emptyEditor.style.display = 'none';
+      els.editorContent.style.display = 'block';
+
+      els.metaOrderId.textContent = order.orderId || '-';
+      els.metaCustomerName.textContent = order.customerName || '-';
+      els.metaPhone.textContent = order.phone || '-';
+      els.metaEmail.textContent = order.email || '-';
+      els.metaOrderCategory.textContent = order.orderCategory || '-';
+      els.metaPreferredContact.textContent = order.preferredContactMethod || '-';
+      els.metaServicePlan.textContent = order.servicePlanRequested || '-';
+      els.metaDeviceRequested.textContent = order.deviceRequested || '-';
+      els.metaShippingNeeded.textContent = order.shippingNeeded || '-';
+      els.metaSetupType.textContent = order.setupType || '-';
+
+      els.orderId.value = order.orderId || '';
+      els.quotedPrice.value = order.quotedPrice || '';
+      els.amountPaid.value = order.amountPaid || '';
+      els.balanceDue.value = order.balanceDue || '';
+      els.paymentStatus.value = order.paymentStatus || '';
+      els.paymentMethod.value = order.paymentMethod || '';
+      els.currentStatus.value = order.currentStatus || '';
+      els.internalNotes.value = order.internalNotes || '';
+
+      renderTable();
+    }
+
+    function clearEditor() {
+      selectedOrderId = '';
+      els.emptyEditor.style.display = 'block';
+      els.editorContent.style.display = 'none';
+      els.orderForm.reset();
+      renderTable();
+    }
+
+    function resetEditorToSelected() {
+      if (!selectedOrderId) {
+        clearEditor();
+        return;
+      }
+      selectOrder(selectedOrderId);
+      setStatus('Editor reset to the selected order values.', 'warn');
+    }
+
+    function maybeAutoBalance() {
+      const quoted = parseMoney(els.quotedPrice.value);
+      const paid = parseMoney(els.amountPaid.value);
+
+      if (quoted !== null && paid !== null) {
+        const balance = quoted - paid;
+        els.balanceDue.value = balance.toFixed(2);
       }
     }
 
-    function safeRaw(value) {
-      if (value === null || value === undefined) return "";
-      return String(value).trim();
+    function parseMoney(value) {
+      const cleaned = String(value || '').replace(/[$,]/g, '').trim();
+      if (!cleaned) return null;
+      const num = Number(cleaned);
+      return isNaN(num) ? null : num;
+    }
+
+    async function handleSave(event) {
+      event.preventDefault();
+
+      if (!selectedOrderId || !els.orderId.value) {
+        setStatus('Select an order before saving.', 'bad');
+        return;
+      }
+
+      const payload = {
+        action: SAVE_ACTION,
+        orderId: els.orderId.value.trim(),
+        quotedPrice: cleanMoneyString(els.quotedPrice.value),
+        amountPaid: cleanMoneyString(els.amountPaid.value),
+        balanceDue: cleanMoneyString(els.balanceDue.value),
+        paymentStatus: els.paymentStatus.value.trim(),
+        paymentMethod: els.paymentMethod.value.trim(),
+        currentStatus: els.currentStatus.value.trim(),
+        internalNotes: els.internalNotes.value.trim()
+      };
+
+      els.saveBtn.disabled = true;
+      setStatus('Saving order update...', 'warn');
+
+      try {
+        const body = new URLSearchParams();
+        Object.keys(payload).forEach(key => {
+          body.append(key, payload[key]);
+        });
+
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body
+        });
+
+        const text = await response.text();
+        const result = safeParseJson(text, 'save');
+
+        if (!result || result.success !== true) {
+          throw new Error((result && (result.error || result.message)) || 'Save failed.');
+        }
+
+        updateLocalOrder(payload);
+        applyFilter();
+        selectOrder(payload.orderId);
+
+        setStatus('Order saved successfully.', 'ok');
+      } catch (error) {
+        console.error(error);
+        setStatus('Unable to send the save request: ' + error.message, 'bad');
+      } finally {
+        els.saveBtn.disabled = false;
+      }
+    }
+
+    function updateLocalOrder(payload) {
+      const index = allOrders.findIndex(order => order.orderId === payload.orderId);
+      if (index === -1) return;
+
+      allOrders[index] = {
+        ...allOrders[index],
+        quotedPrice: payload.quotedPrice,
+        amountPaid: payload.amountPaid,
+        balanceDue: payload.balanceDue,
+        paymentStatus: payload.paymentStatus,
+        paymentMethod: payload.paymentMethod,
+        currentStatus: payload.currentStatus,
+        internalNotes: payload.internalNotes
+      };
+    }
+
+    function safeParseJson(text, phase) {
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        throw new Error('The ' + phase + ' response was not valid JSON: ' + text);
+      }
+    }
+
+    function formatMoneyDisplay(value) {
+      const num = Number(cleanMoneyString(value));
+      if (isNaN(num)) return value ? String(value) : '-';
+      return num.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      });
     }
 
     function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
-
-    function displayValue(value) {
-      const raw = safeRaw(value);
-      if (!raw) {
-        return '<span class="muted">-</span>';
-      }
-      return escapeHtml(raw);
-    }
-
-    function numericAmount(value) {
-      if (value === null || value === undefined || value === "") return 0;
-      const parsed = Number(String(value).replace(/[^0-9.]/g, ""));
-      return Number.isFinite(parsed) ? parsed : 0;
-    }
-
-    function money(value) {
-      const number = Number(value || 0);
-      return "$" + number.toFixed(2);
-    }
-
-    function normalizeStatus(status) {
-      return safeRaw(status).toUpperCase();
-    }
-
-    function getStatusPill(status) {
-      const normalized = normalizeStatus(status);
-      let className = "pill pill-other";
-
-      if (["NEW", "UNDER REVIEW", "QUOTE READY"].includes(normalized)) {
-        className = "pill pill-blue";
-      } else if (["QUOTE SENT", "PAYMENT SENT", "PENDING"].includes(normalized)) {
-        className = "pill pill-gold";
-      } else if (["PAID", "PAYMENT RECEIVED", "COMPLETE", "COMPLETED"].includes(normalized)) {
-        className = "pill pill-green";
-      } else if (["CANCELLED", "FAILED"].includes(normalized)) {
-        className = "pill pill-red";
-      } else if (["SETUP SCHEDULED"].includes(normalized)) {
-        className = "pill pill-purple";
-      }
-
-      return '<span class="' + className + '">' + (safeRaw(status) ? escapeHtml(status) : "-") + "</span>";
-    }
-
-    function getFirstValue(order, keys) {
-      for (const key of keys) {
-        if (order && order[key] !== undefined && order[key] !== null && String(order[key]).trim() !== "") {
-          return String(order[key]).trim();
-        }
-      }
-      return "";
-    }
-
-    function normalizeOrder(order, index = 0) {
-      const id = getFirstValue(order, ["requestId", "id", "requestID", "Request ID", "RequestID"]) || ("REQ-" + String(index + 1).padStart(4, "0"));
-      const createdAt = getFirstValue(order, ["createdAt", "timestamp", "created_at", "dateCreated", "Created At", "Timestamp"]);
-      const customerName = getFirstValue(order, ["customerName", "name", "fullName", "customer", "Name"]);
-      const emailAddress = getFirstValue(order, ["emailAddress", "email", "Email"]);
-      const phoneNumber = getFirstValue(order, ["phoneNumber", "phone", "Phone"]);
-      const preferredContact = getFirstValue(order, ["preferredContact", "contactMethod", "Preferred Contact"]);
-      const preferredReplyTime = getFirstValue(order, ["preferredReplyTime", "preferredReply", "Preferred Reply Time"]);
-      const customerType = getFirstValue(order, ["customerType", "Customer Type"]);
-      const orderType = getFirstValue(order, ["orderType", "Order Type"]);
-      const planInterest = getFirstValue(order, ["planInterest", "plan", "servicePlan", "Plan Interest"]);
-      const deviceSelected = getFirstValue(order, ["deviceSelected", "device", "deviceChoice", "Device Selected"]);
-      const tvCount = getFirstValue(order, ["tvCount", "numberOfTVs", "TV Count"]);
-      const fulfillmentType = getFirstValue(order, ["fulfillmentType", "Fulfillment Type"]);
-      const quoteAmount = getFirstValue(order, ["quoteAmount", "amount", "Quote Amount"]);
-      const paymentStatus = getFirstValue(order, ["paymentStatus", "payment", "Payment Status"]);
-      const orderStatus = getFirstValue(order, ["orderStatus", "status", "Order Status"]);
-      const deliveryStatus = getFirstValue(order, ["deliveryStatus", "shippingStatus", "Delivery Status"]);
-      const supportRoute = getFirstValue(order, ["supportRoute", "supportPath", "Support Route"]);
-      const quoteLink = getFirstValue(order, ["quoteLink", "Quote Link"]);
-      const paymentLink = getFirstValue(order, ["paymentLink", "checkoutLink", "Payment Link"]);
-      const notes = getFirstValue(order, ["internalNotes", "notes", "customerNotes", "Notes"]);
-
-      return {
-        id,
-        createdAt,
-        customerName,
-        emailAddress,
-        phoneNumber,
-        preferredContact,
-        preferredReplyTime,
-        customerType,
-        orderType,
-        planInterest,
-        deviceSelected,
-        tvCount,
-        fulfillmentType,
-        quoteAmount,
-        paymentStatus,
-        orderStatus,
-        deliveryStatus,
-        supportRoute,
-        quoteLink,
-        paymentLink,
-        notes
-      };
-    }
-
-    function statusSortValue(order) {
-      return normalizeStatus(order.orderStatus || "");
-    }
-
-    function sortOrders(orders) {
-      const sortValue = sortFilter.value;
-      const sorted = [...orders];
-
-      if (sortValue === "name") {
-        sorted.sort((a, b) => String(a.customerName || "").localeCompare(String(b.customerName || "")));
-        return sorted;
-      }
-
-      if (sortValue === "oldest") {
-        sorted.sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
-        return sorted;
-      }
-
-      if (sortValue === "status") {
-        sorted.sort((a, b) => statusSortValue(a).localeCompare(statusSortValue(b)));
-        return sorted;
-      }
-
-      sorted.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
-      return sorted;
-    }
-
-    function getFilteredOrders() {
-      const searchText = searchInput.value.trim().toLowerCase();
-      const selectedStatus = normalizeStatus(statusFilter.value);
-      const selectedPayment = normalizeStatus(paymentFilter.value);
-
-      let filtered = [...allOrders];
-
-      if (selectedStatus) {
-        filtered = filtered.filter(order => normalizeStatus(order.orderStatus) === selectedStatus);
-      }
-
-      if (selectedPayment) {
-        filtered = filtered.filter(order => normalizeStatus(order.paymentStatus) === selectedPayment);
-      }
-
-      if (searchText) {
-        filtered = filtered.filter(order => {
-          const combined = [
-            order.id,
-            order.createdAt,
-            order.customerName,
-            order.emailAddress,
-            order.phoneNumber,
-            order.preferredContact,
-            order.preferredReplyTime,
-            order.customerType,
-            order.orderType,
-            order.planInterest,
-            order.deviceSelected,
-            order.fulfillmentType,
-            order.orderStatus,
-            order.paymentStatus,
-            order.deliveryStatus,
-            order.supportRoute,
-            order.notes
-          ].join(" ").toLowerCase();
-
-          return combined.includes(searchText);
-        });
-      }
-
-      return sortOrders(filtered);
-    }
-
-    function updateStats(all, filtered) {
-      const normalizedOrderStatus = (status) => normalizeStatus(status);
-      const normalizedPaymentStatus = (status) => normalizeStatus(status);
-
-      totalOrdersEl.textContent = String(all.length);
-
-      const reviewCount = all.filter(order => ["NEW", "UNDER REVIEW"].includes(normalizedOrderStatus(order.orderStatus))).length;
-      const paymentSentCount = all.filter(order => ["QUOTE SENT", "PAYMENT SENT"].includes(normalizedOrderStatus(order.orderStatus)) || ["PAYMENT SENT"].includes(normalizedPaymentStatus(order.paymentStatus))).length;
-      const paidCount = all.filter(order => ["PAID"].includes(normalizedOrderStatus(order.orderStatus)) || ["PAID", "PAYMENT RECEIVED"].includes(normalizedPaymentStatus(order.paymentStatus))).length;
-      const completeCount = all.filter(order => ["COMPLETE", "COMPLETED"].includes(normalizedOrderStatus(order.orderStatus))).length;
-
-      reviewOrdersEl.textContent = String(reviewCount);
-      paymentSentOrdersEl.textContent = String(paymentSentCount);
-      paidOrdersEl.textContent = String(paidCount);
-      completeOrdersEl.textContent = String(completeCount);
-      filteredOrdersEl.textContent = String(filtered.length);
-    }
-
-    function renderOrders() {
-      const filtered = getFilteredOrders();
-      updateStats(allOrders, filtered);
-
-      if (!filtered.length) {
-        ordersTableBody.innerHTML = '<tr><td colspan="19" class="empty-state">No orders found for the current filter.</td></tr>';
-        return;
-      }
-
-      ordersTableBody.innerHTML = filtered.map(order => {
-        const isActive = selectedOrderId && selectedOrderId === order.id;
-        return `
-          <tr class="${isActive ? "active-row" : ""}">
-            <td class="sticky-id id-cell">${displayValue(order.id)}</td>
-            <td class="sticky-name name-cell">${displayValue(order.customerName)}</td>
-            <td class="col-created readonly-box">${displayValue(order.createdAt)}</td>
-            <td class="col-email readonly-box">${displayValue(order.emailAddress)}</td>
-            <td class="col-phone readonly-box">${displayValue(order.phoneNumber)}</td>
-            <td class="col-contact readonly-box">${displayValue(order.preferredContact)}</td>
-            <td class="col-reply readonly-box">${displayValue(order.preferredReplyTime)}</td>
-            <td class="col-customer-type readonly-box">${displayValue(order.customerType)}</td>
-            <td class="col-order-type readonly-box">${displayValue(order.orderType)}</td>
-            <td class="col-plan readonly-box">${displayValue(order.planInterest)}</td>
-            <td class="col-device readonly-box">${displayValue(order.deviceSelected)}</td>
-            <td class="col-tv readonly-box">${displayValue(order.tvCount)}</td>
-            <td class="col-fulfillment readonly-box">${displayValue(order.fulfillmentType)}</td>
-            <td class="col-order-status">${getStatusPill(order.orderStatus)}</td>
-            <td class="col-payment">${getStatusPill(order.paymentStatus)}</td>
-            <td class="col-delivery readonly-box">${displayValue(order.deliveryStatus)}</td>
-            <td class="col-support readonly-box">${displayValue(order.supportRoute)}</td>
-            <td class="col-notes readonly-box">${displayValue(order.notes)}</td>
-            <td class="col-actions">
-              <button class="btn btn-small btn-primary" type="button" onclick="selectOrder('${escapeHtml(order.id)}')">Review</button>
-            </td>
-          </tr>
-        `;
-      }).join("");
-    }
-
-    function getOrderById(id) {
-      return allOrders.find(order => order.id === id) || null;
-    }
-
-    function getDraftStorageKey(id) {
-      return DRAFT_KEY_PREFIX + id;
-    }
-
-    function getDraftForOrder(id) {
-      if (!id) return null;
-      try {
-        const raw = localStorage.getItem(getDraftStorageKey(id));
-        return raw ? JSON.parse(raw) : null;
-      } catch (error) {
-        console.error("Draft read error", error);
-        return null;
-      }
-    }
-
-    function saveDraftForOrder(id, draft) {
-      localStorage.setItem(getDraftStorageKey(id), JSON.stringify(draft));
-    }
-
-    function clearDraftForOrder(id) {
-      localStorage.removeItem(getDraftStorageKey(id));
-    }
-
-    function parsePlanFromRequest(text) {
-      const lower = safeRaw(text).toLowerCase();
-      if (!lower) return "";
-      if (lower.includes("2 year")) return "2 Years - $200";
-      if (lower.includes("year")) return "Yearly - $120";
-      if (lower.includes("month")) return "Monthly - $15";
-      return "";
-    }
-
-    function parseDeviceFromRequest(text) {
-      const lower = safeRaw(text).toLowerCase();
-      if (!lower) return "";
-      if (lower.includes("shield")) return "NVIDIA Shield TV Pro - $300";
-      if (lower.includes("google tv")) return "Google TV Streamer 4K - $150";
-      if (lower.includes("onn 4k pro")) return "Onn 4K Pro - $85";
-      if (lower.includes("onn 4k plus")) return "Onn 4K Plus - $65";
-      if (lower.includes("onn 4k")) return "Onn 4K Streaming Device - $35";
-      if (lower.includes("service only") || lower.includes("online only")) return "Service Only - $0";
-      return "";
-    }
-
-    function getSuggestedQuoteAmount() {
-      const planPrice = PLAN_PRICING[finalPlanEl.value] || 0;
-      const devicePrice = DEVICE_PRICING[finalDeviceEl.value] || 0;
-      return planPrice + devicePrice;
-    }
-
-    function updateSuggestedTotal() {
-      const total = getSuggestedQuoteAmount();
-      suggestedQuoteDisplayEl.textContent = money(total);
-      loadSuggestionBtn.disabled = !selectedOrderId;
-    }
-
-    function calculateBalanceDueValue(quoteAmount, amountPaid) {
-      const quote = numericAmount(quoteAmount || 0);
-      const paid = numericAmount(amountPaid || 0);
-      const due = Math.max(quote - paid, 0);
-      return due.toFixed(2);
-    }
-
-    function updateBalanceDue() {
-      const quoteValue = safeRaw(quoteAmountEl.value);
-      const paidValue = safeRaw(amountPaidEl.value);
-      if (!quoteValue && !paidValue) {
-        balanceDueEl.value = '';
-        return;
-      }
-      balanceDueEl.value = calculateBalanceDueValue(quoteValue, paidValue);
-    }
-
-    function getCurrentWorkspaceState() {
-      return {
-        finalPlan: finalPlanEl.value,
-        finalDevice: finalDeviceEl.value,
-        quoteAmount: quoteAmountEl.value,
-        amountPaid: amountPaidEl.value,
-        balanceDue: balanceDueEl.value,
-        paymentMethod: paymentMethodEl.value,
-        paymentLink: paymentLinkEl.value,
-        supportRoute: supportRouteEl.value,
-        orderStatus: orderStatusSelectEl.value,
-        paymentStatus: paymentStatusSelectEl.value,
-        workspaceNotes: workspaceNotesEl.value
-      };
-    }
-
-    function fillWorkspace(state = {}) {
-      finalPlanEl.value = safeRaw(state.finalPlan);
-      finalDeviceEl.value = safeRaw(state.finalDevice);
-      quoteAmountEl.value = safeRaw(state.quoteAmount);
-      amountPaidEl.value = safeRaw(state.amountPaid);
-      balanceDueEl.value = safeRaw(state.balanceDue);
-      paymentMethodEl.value = safeRaw(state.paymentMethod);
-      paymentLinkEl.value = safeRaw(state.paymentLink);
-      supportRouteEl.value = safeRaw(state.supportRoute);
-      orderStatusSelectEl.value = safeRaw(state.orderStatus);
-      paymentStatusSelectEl.value = safeRaw(state.paymentStatus);
-      workspaceNotesEl.value = safeRaw(state.workspaceNotes);
-      updateSuggestedTotal();
-      updateBalanceDue();
-      updateMessagePreview();
-    }
-
-    function getDefaultWorkspaceState(order) {
-      const finalPlan = parsePlanFromRequest(order.planInterest);
-      const finalDevice = parseDeviceFromRequest(order.deviceSelected);
-      const quoteAmount = order.quoteAmount ? String(numericAmount(order.quoteAmount).toFixed(2)) : "";
-      const amountPaid = order.amountPaid ? String(numericAmount(order.amountPaid).toFixed(2)) : "";
-      const balanceDue = order.balanceDue ? String(numericAmount(order.balanceDue).toFixed(2)) : (quoteAmount || "");
-      return {
-        finalPlan,
-        finalDevice,
-        quoteAmount,
-        amountPaid,
-        balanceDue,
-        paymentMethod: order.paymentMethod || "",
-        paymentLink: order.paymentLink || "",
-        supportRoute: order.supportRoute || "",
-        orderStatus: order.orderStatus || "",
-        paymentStatus: order.paymentStatus || "",
-        workspaceNotes: order.notes || ""
-      };
-    }
-
-    function renderSelectedOrder(order) {
-      if (!order) {
-        selectedOrderWrap.innerHTML = "Select a row from the table to load the order into the quote and payment workspace.";
-        return;
-      }
-
-      selectedOrderWrap.innerHTML = `
-        <div class="summary-row">
-          <div class="summary-chip">
-            <div class="label">Request ID</div>
-            <div class="value">${escapeHtml(order.id || "-")}</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Customer</div>
-            <div class="value">${escapeHtml(order.customerName || "-")}</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Contact</div>
-            <div class="value">${escapeHtml(order.preferredContact || "Not specified")}</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Created</div>
-            <div class="value">${escapeHtml(order.createdAt || "-")}</div>
-          </div>
-        </div>
-
-        <div class="detail-grid two-col" style="margin-top:12px;">
-          <div class="detail-box">
-            <h3>Request Details</h3>
-            <div class="small"><strong>Email:</strong> ${escapeHtml(order.emailAddress || "-")}</div>
-            <div class="small"><strong>Phone:</strong> ${escapeHtml(order.phoneNumber || "-")}</div>
-            <div class="small"><strong>Order Type:</strong> ${escapeHtml(order.orderType || "-")}</div>
-            <div class="small"><strong>Customer Type:</strong> ${escapeHtml(order.customerType || "-")}</div>
-            <div class="small"><strong>TV Count:</strong> ${escapeHtml(order.tvCount || "-")}</div>
-          </div>
-
-          <div class="detail-box">
-            <h3>Service Direction</h3>
-            <div class="small"><strong>Plan Interest:</strong> ${escapeHtml(order.planInterest || "-")}</div>
-            <div class="small"><strong>Device Selected:</strong> ${escapeHtml(order.deviceSelected || "-")}</div>
-            <div class="small"><strong>Fulfillment Type:</strong> ${escapeHtml(order.fulfillmentType || "-")}</div>
-            <div class="small"><strong>Support Route:</strong> ${escapeHtml(order.supportRoute || "-")}</div>
-            <div class="small"><strong>Reply Time:</strong> ${escapeHtml(order.preferredReplyTime || "-")}</div>
-          </div>
-        </div>
-
-        <div class="detail-box" style="margin-top:12px;">
-          <h3>Notes</h3>
-          <div class="small">${escapeHtml(order.notes || "No notes available.")}</div>
-        </div>
-      `;
-    }
-
-    function buildQuoteMessage(order, workspace) {
-      const plan = workspace.finalPlan || order.planInterest || "your selected service";
-      const device = workspace.finalDevice || order.deviceSelected || "service only";
-      const amount = workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount());
-      const customerName = order.customerName || "there";
-
-      return `Hi ${customerName},
-
-Thanks for reaching out to 4MyIPTV Service.
-
-Here is your quote:
-Service: ${plan}
-Device: ${device}
-Total: ${amount}
-
-This package is based on the details from your request.
-
-If you would like to move forward, I can send the payment request next.`;
-    }
-
-    function buildPaymentMessage(order, workspace) {
-      const customerName = order.customerName || "there";
-      const total = workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount());
-      const balance = workspace.balanceDue ? money(numericAmount(workspace.balanceDue)) : total;
-      const method = workspace.paymentMethod || "the payment method we discussed";
-      const link = safeRaw(workspace.paymentLink);
-      const paymentLine = link
-        ? `Payment details: ${link}`
-        : `Payment method: ${method}`;
-
-      return `Hi ${customerName},
-
-Your order is ready to move forward.
-
-Total quote: ${total}
-Balance due: ${balance}
-Payment method: ${method}
-${paymentLine}
-
-Once payment is completed, reply back and I will move your order into the setup and handoff stage.`;
-    }
-
-    function buildPaidMessage(order, workspace) {
-      const customerName = order.customerName || "there";
-      const route = workspace.supportRoute || order.supportRoute || "support.html";
-      return `Hi ${customerName},
-
-Your payment has been confirmed.
-
-Your order is now moving into the next step.
-Support route: ${route}
-
-I will follow up with the next setup or delivery instructions shortly.`;
-    }
-
-    function buildSupportMessage(order, workspace) {
-      const customerName = order.customerName || "there";
-      const route = workspace.supportRoute || order.supportRoute || "support.html";
-      return `Hi ${customerName},
-
-You can use this support route for your next step:
-${route}
-
-If you need help during setup, reach out with your name and the details of the issue so I can help you quickly.`;
-    }
-
-    function buildInternalSummary(order, workspace) {
-      const amount = workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount());
-      return [
-        "Request ID: " + (order.id || "-"),
-        "Customer: " + (order.customerName || "-"),
-        "Plan: " + (workspace.finalPlan || order.planInterest || "-"),
-        "Device: " + (workspace.finalDevice || order.deviceSelected || "-"),
-        "Quote Amount: " + amount,
-        "Amount Paid: " + (workspace.amountPaid ? money(numericAmount(workspace.amountPaid)) : "-"),
-        "Balance Due: " + (workspace.balanceDue ? money(numericAmount(workspace.balanceDue)) : "-"),
-        "Payment Method: " + (workspace.paymentMethod || "-"),
-        "Payment Link: " + (workspace.paymentLink || "-"),
-        "Order Status: " + (workspace.orderStatus || order.orderStatus || "-"),
-        "Payment Status: " + (workspace.paymentStatus || order.paymentStatus || "-"),
-        "Support Route: " + (workspace.supportRoute || order.supportRoute || "-"),
-        "Notes: " + (workspace.workspaceNotes || order.notes || "-")
-      ].join("\n");
-    }
-
-
-    function getRecommendedNextMove(order, workspace) {
-      const status = normalizeStatus(workspace.orderStatus || order.orderStatus || "");
-      const payment = normalizeStatus(workspace.paymentStatus || order.paymentStatus || "");
-
-      if (["PAID", "PAYMENT RECEIVED"].includes(payment) || status === "PAID") {
-        return {
-          move: "Send support handoff",
-          messageTab: "support",
-          detail: "Payment is marked received. Send the support route and move toward completion."
-        };
-      }
-
-      if (status === "PAYMENT SENT" || payment === "PAYMENT SENT" || payment === "SENT") {
-        return {
-          move: "Wait for payment",
-          messageTab: "payment",
-          detail: "The payment request has been sent. Follow up only if needed."
-        };
-      }
-
-      if (status === "QUOTE READY" || status === "QUOTE SENT") {
-        return {
-          move: "Send payment request",
-          messageTab: "payment",
-          detail: "The quote is ready. Send the payment request with the link or method below."
-        };
-      }
-
-      return {
-        move: "Review and send quote",
-        messageTab: "quote",
-        detail: "Finish the quote details, save to the sheet, then send the quote message."
-      };
-    }
-
-    function renderActionSummary(order) {
-      if (!order) {
-        actionSummaryWrap.innerHTML = `
-          <h3>Next Move</h3>
-          <div class="small muted">Load an order to see the recommended next action and outbound message path.</div>
-        `;
-        return;
-      }
-
-      const workspace = getCurrentWorkspaceState();
-      const amount = workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount());
-      const balance = workspace.balanceDue ? money(numericAmount(workspace.balanceDue)) : (workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount()));
-      const recommendation = getRecommendedNextMove(order, workspace);
-      const route = workspace.supportRoute || order.supportRoute || '-';
-
-      actionSummaryWrap.innerHTML = `
-        <h3>Next Move</h3>
-        <div class="summary-row" style="margin-top:10px;">
-          <div class="summary-chip">
-            <div class="label">Recommended Action</div>
-            <div class="value">${escapeHtml(recommendation.move)}</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Suggested Message</div>
-            <div class="value">${escapeHtml(recommendation.messageTab.charAt(0).toUpperCase() + recommendation.messageTab.slice(1))}</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Current Total</div>
-            <div class="value">${escapeHtml(amount)}</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Balance Due</div>
-            <div class="value">${escapeHtml(balance)}</div>
-          </div>
-          <div class="summary-chip">
-            <div class="label">Support Route</div>
-            <div class="value">${escapeHtml(route)}</div>
-          </div>
-        </div>
-        <div class="detail-box" style="margin-top:12px;">
-          <div class="small">${escapeHtml(recommendation.detail)}</div>
-        </div>
-      `;
-    }
-
-    function buildUpdatePayload(order, workspace) {
-      return {
-        action: 'updateOrder',
-        id: order.id,
-        finalPlan: workspace.finalPlan || order.planInterest || '',
-        finalDevice: workspace.finalDevice || order.deviceSelected || '',
-        quoteAmount: workspace.quoteAmount || (getSuggestedQuoteAmount() ? getSuggestedQuoteAmount().toFixed(2) : ''),
-        amountPaid: workspace.amountPaid || '',
-        balanceDue: workspace.balanceDue || '',
-        paymentMethod: workspace.paymentMethod || '',
-        paymentLink: workspace.paymentLink || '',
-        supportRoute: workspace.supportRoute || order.supportRoute || '',
-        orderStatus: workspace.orderStatus || order.orderStatus || '',
-        paymentStatus: workspace.paymentStatus || order.paymentStatus || '',
-        notes: workspace.workspaceNotes || order.notes || ''
-      };
-    }
-
-    async function saveSelectedOrderToSheet(statusMessage = 'Saved to sheet and refreshing orders.') {
-      const order = getOrderById(selectedOrderId);
-      if (!order) {
-        setDraftMessage('Select an order first.', 'error');
-        return;
-      }
-
-      const workspace = getCurrentWorkspaceState();
-      saveDraftForOrder(selectedOrderId, workspace);
-      const payload = buildUpdatePayload(order, workspace);
-      const params = new URLSearchParams(payload);
-      const updateUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + params.toString();
-
-      setDraftMessage('Saving to sheet...', '');
-      saveDraftBtn.disabled = true;
-
-      try {
-        const response = await fetch(updateUrl, {
-          method: 'GET',
-          cache: 'no-store'
-        });
-        const result = await response.json();
-        if (!result || result.success !== true) {
-          throw new Error((result && result.message) ? result.message : 'Unknown save error.');
-        }
-
-        setDraftMessage('Saved to sheet. Reloading orders...', 'ok');
-        await new Promise(resolve => setTimeout(resolve, 900));
-        await loadOrders(true);
-        if (selectedOrderId) {
-          const refreshed = getOrderById(selectedOrderId);
-          if (refreshed) {
-            const savedDraft = getDraftForOrder(selectedOrderId);
-            renderSelectedOrder(refreshed);
-            fillWorkspace(savedDraft || getDefaultWorkspaceState(refreshed));
-          }
-        }
-      } catch (error) {
-        console.error('Admin Orders Save Error:', error);
-        setDraftMessage('Unable to send the save request. ' + error.message, 'error');
-      } finally {
-        saveDraftBtn.disabled = !selectedOrderId;
-      }
-    }
-
-    async function applyQuickStatus(orderStatus, paymentStatus, successMessage) {
-      if (!selectedOrderId) {
-        setDraftMessage('Select an order first.', 'error');
-        return;
-      }
-
-      if (orderStatus) {
-        orderStatusSelectEl.value = orderStatus;
-      }
-      if (paymentStatus) {
-        paymentStatusSelectEl.value = paymentStatus;
-      }
-
-      syncDraftAndPreview();
-      await saveSelectedOrderToSheet(successMessage);
-    }
-
-    function getCurrentMessageText() {
-      const order = getOrderById(selectedOrderId);
-      if (!order) return "";
-      const workspace = getCurrentWorkspaceState();
-
-      if (activeMessageTab === "payment") {
-        return buildPaymentMessage(order, workspace);
-      }
-      if (activeMessageTab === "paid") {
-        return buildPaidMessage(order, workspace);
-      }
-      if (activeMessageTab === "support") {
-        return buildSupportMessage(order, workspace);
-      }
-      return buildQuoteMessage(order, workspace);
-    }
-
-    function updateMessagePreview() {
-      const order = getOrderById(selectedOrderId);
-      const hasOrder = !!order;
-      copyMessageBtn.disabled = !hasOrder;
-      copyInternalSummaryBtn.disabled = !hasOrder;
-      openPaymentLinkBtn.disabled = !hasOrder || !safeRaw(paymentLinkEl.value);
-      saveDraftBtn.disabled = !hasOrder;
-      clearDraftBtn.disabled = !hasOrder;
-      setQuoteReadyBtn.disabled = !hasOrder;
-      setPaymentSentBtn.disabled = !hasOrder;
-      setPaidBtn.disabled = !hasOrder;
-      setCompleteBtn.disabled = !hasOrder;
-
-      if (!hasOrder) {
-        messagePreviewEl.value = "";
-        renderActionSummary(null);
-        return;
-      }
-
-      messagePreviewEl.value = getCurrentMessageText();
-      renderActionSummary(order);
-    }
-
-    function syncDraftAndPreview() {
-      updateSuggestedTotal();
-      updateBalanceDue();
-      if (selectedOrderId) {
-        saveDraftForOrder(selectedOrderId, getCurrentWorkspaceState());
-      }
-      updateMessagePreview();
-    }
-
-    function selectOrder(id) {
-      const order = getOrderById(id);
-      selectedOrderId = order ? order.id : "";
-      renderOrders();
-
-      if (!order) {
-        renderSelectedOrder(null);
-        fillWorkspace({});
-        setDraftMessage("Could not load the selected order.", "error");
-        return;
-      }
-
-      renderSelectedOrder(order);
-      const savedDraft = getDraftForOrder(order.id);
-      fillWorkspace(savedDraft || getDefaultWorkspaceState(order));
-      setDraftMessage("Order loaded into the quote workspace.", "ok");
-    }
-
-    window.selectOrder = selectOrder;
-
-    function copyText(text, successMessage) {
-      navigator.clipboard.writeText(text).then(() => {
-        setDraftMessage(successMessage, "ok");
-      }).catch(() => {
-        setDraftMessage("Could not copy text to the clipboard.", "error");
-      });
-    }
-
-    function loadOrders(silent = false) {
-      if (!silent) {
-        setMessage("Loading orders.", "");
-      }
-      ordersTableBody.innerHTML = '<tr><td colspan="19" class="empty-state">Loading orders.</td></tr>';
-
-      const ordersUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
-      fetch(ordersUrl, {
-        method: "GET",
-        redirect: "follow",
-        cache: "no-store"
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status + " returned from Apps Script.");
-        }
-        return response.json();
-      })
-      .then(data => {
-        let orders = [];
-
-        if (Array.isArray(data)) {
-          orders = data;
-        } else if (Array.isArray(data.orders)) {
-          orders = data.orders;
-        } else if (Array.isArray(data.data)) {
-          orders = data.data;
-        } else if (data.success && Array.isArray(data.rows)) {
-          orders = data.rows;
-        } else {
-          throw new Error("Response format was received, but no order array was found.");
-        }
-
-        allOrders = orders.map((order, index) => normalizeOrder(order, index));
-
-        if (!silent) {
-          setMessage("Orders loaded successfully.", "ok");
-        }
-        renderOrders();
-
-        if (selectedOrderId) {
-          const selectedStillExists = getOrderById(selectedOrderId);
-          if (selectedStillExists) {
-            selectOrder(selectedOrderId);
-          } else {
-            selectedOrderId = "";
-            renderSelectedOrder(null);
-            fillWorkspace({});
-            renderActionSummary(null);
-          }
-        }
-      })
-      .catch(error => {
-        console.error("Admin Orders Load Error:", error);
-        setMessage("Unable to load orders. " + error.message, "error");
-        ordersTableBody.innerHTML = `
-          <tr>
-            <td colspan="19" class="empty-state">
-              Unable to load orders.<br />
-              <span class="small">Check the Apps Script URL and confirm the Web App is deployed correctly.</span>
-            </td>
-          </tr>
-        `;
-        updateStats([], []);
-      });
-    }
-
-    refreshBtn.addEventListener("click", loadOrders);
-    topRefreshBtn.addEventListener("click", loadOrders);
-
-    clearBtn.addEventListener("click", () => {
-      searchInput.value = "";
-      statusFilter.value = "";
-      paymentFilter.value = "";
-      sortFilter.value = "newest";
-      renderOrders();
-      setMessage("Filters cleared.", "ok");
-    });
-
-    searchInput.addEventListener("input", renderOrders);
-    statusFilter.addEventListener("change", renderOrders);
-    paymentFilter.addEventListener("change", renderOrders);
-    sortFilter.addEventListener("change", renderOrders);
-
-    [finalPlanEl, finalDeviceEl, quoteAmountEl, amountPaidEl, paymentMethodEl, paymentLinkEl, supportRouteEl, orderStatusSelectEl, paymentStatusSelectEl, workspaceNotesEl].forEach(el => {
-      el.addEventListener("input", syncDraftAndPreview);
-      el.addEventListener("change", syncDraftAndPreview);
-    });
-
-    loadSuggestionBtn.addEventListener("click", () => {
-      const suggested = getSuggestedQuoteAmount();
-      quoteAmountEl.value = suggested ? suggested.toFixed(2) : "";
-      updateBalanceDue();
-      syncDraftAndPreview();
-      setDraftMessage("Suggested total loaded into the quote amount field.", "ok");
-    });
-
-    saveDraftBtn.addEventListener("click", () => {
-      saveSelectedOrderToSheet();
-    });
-
-    clearDraftBtn.addEventListener("click", () => {
-      if (!selectedOrderId) {
-        setDraftMessage("Select an order first.", "error");
-        return;
-      }
-
-      clearDraftForOrder(selectedOrderId);
-      const order = getOrderById(selectedOrderId);
-      fillWorkspace(getDefaultWorkspaceState(order));
-      setDraftMessage("Local draft cleared for " + selectedOrderId + ".", "ok");
-    });
-
-    openGeneratorBtn.addEventListener("click", () => {
-      setDraftMessage("Checkout link generator page is not live in this repo yet.", "error");
-    });
-
-    document.querySelectorAll(".message-tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".message-tab").forEach(btn => btn.classList.remove("active"));
-        tab.classList.add("active");
-        activeMessageTab = tab.dataset.tab || "quote";
-        updateMessagePreview();
-      });
-    });
-
-    copyMessageBtn.addEventListener("click", () => {
-      const text = getCurrentMessageText();
-      if (!text) {
-        setDraftMessage("Select an order first.", "error");
-        return;
-      }
-      copyText(text, "Customer message copied.");
-    });
-
-    copyInternalSummaryBtn.addEventListener("click", () => {
-      const order = getOrderById(selectedOrderId);
-      if (!order) {
-        setDraftMessage("Select an order first.", "error");
-        return;
-      }
-
-      copyText(buildInternalSummary(order, getCurrentWorkspaceState()), "Internal summary copied.");
-    });
-
-    openPaymentLinkBtn.addEventListener("click", () => {
-      const link = safeRaw(paymentLinkEl.value);
-      if (!link) {
-        setDraftMessage("No payment link is available in the workspace.", "error");
-        return;
-      }
-
-      window.open(link, "_blank");
-    });
-
-    setQuoteReadyBtn.addEventListener("click", () => {
-      applyQuickStatus("QUOTE READY", "QUOTE PENDING", "Quote marked ready and saved to the sheet.");
-    });
-
-    setPaymentSentBtn.addEventListener("click", () => {
-      applyQuickStatus("PAYMENT SENT", "PAYMENT SENT", "Payment request marked sent and saved to the sheet.");
-    });
-
-    setPaidBtn.addEventListener("click", () => {
-      applyQuickStatus("PAID", "PAID", "Payment marked received and saved to the sheet.");
-    });
-
-    setCompleteBtn.addEventListener("click", () => {
-      applyQuickStatus("COMPLETE", paymentStatusSelectEl.value || "PAID", "Order marked complete and saved to the sheet.");
-    });
-
-    updateSuggestedTotal();
-    updateMessagePreview();
-    loadOrders();
   </script>
 </body>
 </html>
