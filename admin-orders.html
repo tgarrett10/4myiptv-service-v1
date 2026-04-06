@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service | Admin Orders</title>
   <!--
-    Version: 2.3
+    Version: 2.6
     Last Updated: 2026-04-05
     Change Notes:
     - Preserved the existing dark admin-orders style and live order table concept.
@@ -948,7 +948,7 @@
               </table>
             </div>
             <div class="inline-note">
-              This page assumes the existing Apps Script endpoint is already handling order reads. The quote workspace below saves drafts locally by request ID so you can work immediately without waiting for new backend changes.
+              This page now uses one shared Apps Script endpoint for request intake and admin review. The quote workspace below can save to the sheet and still keeps a local backup draft by request ID.
             </div>
           </div>
         </div>
@@ -961,6 +961,10 @@
             <h3>Selected Order Snapshot</h3>
             <div id="selectedOrderWrap" class="selected-order-empty">
               Select a row from the table to load the order into the quote and payment workspace.
+            </div>
+            <div id="actionSummaryWrap" class="detail-box" style="margin-top:12px;">
+              <h3>Next Move</h3>
+              <div class="small muted">Load an order to see the recommended next action and outbound message path.</div>
             </div>
           </div>
 
@@ -1099,10 +1103,20 @@
             </div>
 
             <div class="button-row" style="margin-top:14px;">
-              <button class="btn btn-green" id="saveDraftBtn" type="button" disabled>Save Draft</button>
+              <button class="btn btn-green" id="saveDraftBtn" type="button" disabled>Save to Sheet</button>
               <button class="btn btn-secondary" id="loadSuggestionBtn" type="button" disabled>Use Suggested Total</button>
               <button class="btn btn-purple" id="openGeneratorBtn" type="button">Open Checkout Generator</button>
-              <button class="btn btn-red" id="clearDraftBtn" type="button" disabled>Clear Draft</button>
+              <button class="btn btn-red" id="clearDraftBtn" type="button" disabled>Clear Local Draft</button>
+            </div>
+
+            <div class="detail-box" style="margin-top:12px;">
+              <h3>Quick Status Actions</h3>
+              <div class="button-row" style="margin-top:10px;">
+                <button class="btn btn-secondary" id="setQuoteReadyBtn" type="button" disabled>Set Quote Ready</button>
+                <button class="btn btn-gold" id="setPaymentSentBtn" type="button" disabled>Set Payment Sent</button>
+                <button class="btn btn-green" id="setPaidBtn" type="button" disabled>Mark Paid</button>
+                <button class="btn btn-soft" id="setCompleteBtn" type="button" disabled>Mark Complete</button>
+              </div>
             </div>
 
             <div id="draftMessage" class="message"></div>
@@ -1133,7 +1147,7 @@
             </div>
 
             <div class="inline-note">
-              These messages are generated from the selected order and your quote workspace values. This gives you a working internal quote and payment step before you decide whether to automate more of it later.
+              These messages are generated from the selected order and your quote workspace values. This gives you a working internal quote and payment step with copy-ready outbound messages, while keeping the process controlled.
             </div>
           </div>
         </div>
@@ -1153,11 +1167,11 @@
           </div>
           <div class="summary-chip">
             <div class="label">Quote</div>
-            <div class="value">Set the final plan, device package, quote amount, and payment method in the workspace.</div>
+            <div class="value">Set the final plan, device package, quote amount, and payment method in the workspace, then save it back to the sheet.</div>
           </div>
           <div class="summary-chip">
             <div class="label">Send</div>
-            <div class="value">Copy the quote or payment request message and send it through your normal message path.</div>
+            <div class="value">Copy the quote or payment request message, send it, then move the status forward with the quick actions.</div>
           </div>
           <div class="summary-chip">
             <div class="label">Handoff</div>
@@ -1169,7 +1183,7 @@
 
     <div class="footer-strip">
       <strong>4MyIPTV Service • Admin Orders</strong>
-      <div class="version">Version 2.3 • Last Updated: April 5, 2026</div>
+      <div class="version">Version 2.6 • Last Updated: April 5, 2026</div>
     </div>
   </div>
 
@@ -1216,6 +1230,7 @@
     const filteredOrdersEl = document.getElementById("filteredOrders");
 
     const selectedOrderWrap = document.getElementById("selectedOrderWrap");
+    const actionSummaryWrap = document.getElementById("actionSummaryWrap");
     const finalPlanEl = document.getElementById("finalPlan");
     const finalDeviceEl = document.getElementById("finalDevice");
     const quoteAmountEl = document.getElementById("quoteAmount");
@@ -1232,6 +1247,10 @@
     const clearDraftBtn = document.getElementById("clearDraftBtn");
     const loadSuggestionBtn = document.getElementById("loadSuggestionBtn");
     const openGeneratorBtn = document.getElementById("openGeneratorBtn");
+    const setQuoteReadyBtn = document.getElementById("setQuoteReadyBtn");
+    const setPaymentSentBtn = document.getElementById("setPaymentSentBtn");
+    const setPaidBtn = document.getElementById("setPaidBtn");
+    const setCompleteBtn = document.getElementById("setCompleteBtn");
 
     const messagePreviewEl = document.getElementById("messagePreview");
     const copyMessageBtn = document.getElementById("copyMessageBtn");
@@ -1736,6 +1755,173 @@ If you need help during setup, reach out with your name and the details of the i
       ].join("\n");
     }
 
+
+    function getRecommendedNextMove(order, workspace) {
+      const status = normalizeStatus(workspace.orderStatus || order.orderStatus || "");
+      const payment = normalizeStatus(workspace.paymentStatus || order.paymentStatus || "");
+
+      if (["PAID", "PAYMENT RECEIVED"].includes(payment) || status === "PAID") {
+        return {
+          move: "Send support handoff",
+          messageTab: "support",
+          detail: "Payment is marked received. Send the support route and move toward completion."
+        };
+      }
+
+      if (status === "PAYMENT SENT" || payment === "PAYMENT SENT" || payment === "SENT") {
+        return {
+          move: "Wait for payment",
+          messageTab: "payment",
+          detail: "The payment request has been sent. Follow up only if needed."
+        };
+      }
+
+      if (status === "QUOTE READY" || status === "QUOTE SENT") {
+        return {
+          move: "Send payment request",
+          messageTab: "payment",
+          detail: "The quote is ready. Send the payment request with the link or method below."
+        };
+      }
+
+      return {
+        move: "Review and send quote",
+        messageTab: "quote",
+        detail: "Finish the quote details, save to the sheet, then send the quote message."
+      };
+    }
+
+    function renderActionSummary(order) {
+      if (!order) {
+        actionSummaryWrap.innerHTML = `
+          <h3>Next Move</h3>
+          <div class="small muted">Load an order to see the recommended next action and outbound message path.</div>
+        `;
+        return;
+      }
+
+      const workspace = getCurrentWorkspaceState();
+      const amount = workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount());
+      const recommendation = getRecommendedNextMove(order, workspace);
+      const route = workspace.supportRoute || order.supportRoute || '-';
+
+      actionSummaryWrap.innerHTML = `
+        <h3>Next Move</h3>
+        <div class="summary-row" style="margin-top:10px;">
+          <div class="summary-chip">
+            <div class="label">Recommended Action</div>
+            <div class="value">${escapeHtml(recommendation.move)}</div>
+          </div>
+          <div class="summary-chip">
+            <div class="label">Suggested Message</div>
+            <div class="value">${escapeHtml(recommendation.messageTab.charAt(0).toUpperCase() + recommendation.messageTab.slice(1))}</div>
+          </div>
+          <div class="summary-chip">
+            <div class="label">Current Total</div>
+            <div class="value">${escapeHtml(amount)}</div>
+          </div>
+          <div class="summary-chip">
+            <div class="label">Support Route</div>
+            <div class="value">${escapeHtml(route)}</div>
+          </div>
+        </div>
+        <div class="detail-box" style="margin-top:12px;">
+          <div class="small">${escapeHtml(recommendation.detail)}</div>
+        </div>
+      `;
+    }
+
+    function buildUpdatePayload(order, workspace) {
+      return {
+        action: 'updateOrder',
+        id: order.id,
+        finalPlan: workspace.finalPlan || order.planInterest || '',
+        finalDevice: workspace.finalDevice || order.deviceSelected || '',
+        quoteAmount: workspace.quoteAmount || (getSuggestedQuoteAmount() ? getSuggestedQuoteAmount().toFixed(2) : ''),
+        paymentMethod: workspace.paymentMethod || '',
+        paymentLink: workspace.paymentLink || '',
+        supportRoute: workspace.supportRoute || order.supportRoute || '',
+        orderStatus: workspace.orderStatus || order.orderStatus || '',
+        paymentStatus: workspace.paymentStatus || order.paymentStatus || '',
+        notes: workspace.workspaceNotes || order.notes || ''
+      };
+    }
+
+    async function saveSelectedOrderToSheet(statusMessage = 'Saved to sheet and refreshing orders.') {
+      const order = getOrderById(selectedOrderId);
+      if (!order) {
+        setDraftMessage('Select an order first.', 'error');
+        return;
+      }
+
+      const workspace = getCurrentWorkspaceState();
+      saveDraftForOrder(selectedOrderId, workspace);
+      const payload = buildUpdatePayload(order, workspace);
+      const body = new URLSearchParams(payload).toString();
+
+      setDraftMessage('Saving to sheet...', '');
+      saveDraftBtn.disabled = true;
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+          },
+          body
+        });
+
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status + ' returned from Apps Script.');
+        }
+
+        const text = await response.text();
+        let result = {};
+        try {
+          result = JSON.parse(text);
+        } catch (error) {
+          result = { success: true };
+        }
+
+        if (result.success === false) {
+          throw new Error(result.message || 'The sheet update failed.');
+        }
+
+        setDraftMessage(statusMessage, 'ok');
+        await loadOrders(true);
+        if (selectedOrderId) {
+          const refreshed = getOrderById(selectedOrderId);
+          if (refreshed) {
+            const savedDraft = getDraftForOrder(selectedOrderId);
+            renderSelectedOrder(refreshed);
+            fillWorkspace(savedDraft || getDefaultWorkspaceState(refreshed));
+          }
+        }
+      } catch (error) {
+        console.error('Admin Orders Save Error:', error);
+        setDraftMessage('Unable to save to the sheet. ' + error.message, 'error');
+      } finally {
+        saveDraftBtn.disabled = !selectedOrderId;
+      }
+    }
+
+    async function applyQuickStatus(orderStatus, paymentStatus, successMessage) {
+      if (!selectedOrderId) {
+        setDraftMessage('Select an order first.', 'error');
+        return;
+      }
+
+      if (orderStatus) {
+        orderStatusSelectEl.value = orderStatus;
+      }
+      if (paymentStatus) {
+        paymentStatusSelectEl.value = paymentStatus;
+      }
+
+      syncDraftAndPreview();
+      await saveSelectedOrderToSheet(successMessage);
+    }
+
     function getCurrentMessageText() {
       const order = getOrderById(selectedOrderId);
       if (!order) return "";
@@ -1761,13 +1947,19 @@ If you need help during setup, reach out with your name and the details of the i
       openPaymentLinkBtn.disabled = !hasOrder || !safeRaw(paymentLinkEl.value);
       saveDraftBtn.disabled = !hasOrder;
       clearDraftBtn.disabled = !hasOrder;
+      setQuoteReadyBtn.disabled = !hasOrder;
+      setPaymentSentBtn.disabled = !hasOrder;
+      setPaidBtn.disabled = !hasOrder;
+      setCompleteBtn.disabled = !hasOrder;
 
       if (!hasOrder) {
         messagePreviewEl.value = "";
+        renderActionSummary(null);
         return;
       }
 
       messagePreviewEl.value = getCurrentMessageText();
+      renderActionSummary(order);
     }
 
     function syncDraftAndPreview() {
@@ -1803,8 +1995,10 @@ If you need help during setup, reach out with your name and the details of the i
       });
     }
 
-    function loadOrders() {
-      setMessage("Loading orders.", "");
+    function loadOrders(silent = false) {
+      if (!silent) {
+        setMessage("Loading orders.", "");
+      }
       ordersTableBody.innerHTML = '<tr><td colspan="19" class="empty-state">Loading orders.</td></tr>';
 
       fetch(APPS_SCRIPT_URL, {
@@ -1834,7 +2028,9 @@ If you need help during setup, reach out with your name and the details of the i
 
         allOrders = orders.map((order, index) => normalizeOrder(order, index));
 
-        setMessage("Orders loaded successfully.", "ok");
+        if (!silent) {
+          setMessage("Orders loaded successfully.", "ok");
+        }
         renderOrders();
 
         if (selectedOrderId) {
@@ -1845,6 +2041,7 @@ If you need help during setup, reach out with your name and the details of the i
             selectedOrderId = "";
             renderSelectedOrder(null);
             fillWorkspace({});
+            renderActionSummary(null);
           }
         }
       })
@@ -1893,13 +2090,7 @@ If you need help during setup, reach out with your name and the details of the i
     });
 
     saveDraftBtn.addEventListener("click", () => {
-      if (!selectedOrderId) {
-        setDraftMessage("Select an order first.", "error");
-        return;
-      }
-
-      saveDraftForOrder(selectedOrderId, getCurrentWorkspaceState());
-      setDraftMessage("Draft saved locally for " + selectedOrderId + ".", "ok");
+      saveSelectedOrderToSheet();
     });
 
     clearDraftBtn.addEventListener("click", () => {
@@ -1954,6 +2145,22 @@ If you need help during setup, reach out with your name and the details of the i
       }
 
       window.open(link, "_blank");
+    });
+
+    setQuoteReadyBtn.addEventListener("click", () => {
+      applyQuickStatus("QUOTE READY", "QUOTE PENDING", "Quote marked ready and saved to the sheet.");
+    });
+
+    setPaymentSentBtn.addEventListener("click", () => {
+      applyQuickStatus("PAYMENT SENT", "PAYMENT SENT", "Payment request marked sent and saved to the sheet.");
+    });
+
+    setPaidBtn.addEventListener("click", () => {
+      applyQuickStatus("PAID", "PAID", "Payment marked received and saved to the sheet.");
+    });
+
+    setCompleteBtn.addEventListener("click", () => {
+      applyQuickStatus("COMPLETE", paymentStatusSelectEl.value || "PAID", "Order marked complete and saved to the sheet.");
     });
 
     updateSuggestedTotal();
