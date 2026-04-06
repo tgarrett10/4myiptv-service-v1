@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service | Admin Orders</title>
   <!--
-    Version: 2.9.1
+    Version: 2.9.2
     Last Updated: 2026-04-06
     Change Notes:
     - Preserved the existing dark admin-orders style and live order table concept.
@@ -17,6 +17,7 @@
     - Updated the Apps Script endpoint to the current deployed /exec URL.
     - Changed admin saves from GET query string to POST form data for the update path only.
     - Updated the Apps Script endpoint to the latest deployed /exec URL after debugging the admin save path.
+    - Activated the Checkout Link Generator button to open a prefilled generator page from the selected order.
   -->
   <style>
     :root {
@@ -1197,7 +1198,7 @@
 
     <div class="footer-strip">
       <strong>4MyIPTV Service • Admin Orders</strong>
-      <div class="version">Version 2.9.1 • Last Updated: April 6, 2026</div>
+      <div class="version">Version 2.9.2 • Last Updated: April 6, 2026</div>
     </div>
   </div>
 
@@ -1801,6 +1802,36 @@ If you need help during setup, reach out with your name and the details of the i
       ].join("\n");
     }
 
+    function buildCheckoutGeneratorUrl(order, workspace) {
+      const params = new URLSearchParams();
+      const service = workspace.finalPlan || order.planInterest || order.orderType || '';
+      const device = workspace.finalDevice || order.deviceSelected || '';
+      const amount = workspace.quoteAmount || (getSuggestedQuoteAmount() ? getSuggestedQuoteAmount().toFixed(2) : '');
+      const status = workspace.orderStatus || order.orderStatus || 'QUOTE READY';
+      const descriptionParts = [
+        service ? 'Approved Service: ' + service : '',
+        device ? 'Approved Device: ' + device : '',
+        order.fulfillmentType ? 'Fulfillment: ' + order.fulfillmentType : ''
+      ].filter(Boolean);
+
+      params.set('id', order.id || '');
+      params.set('customerName', order.customerName || '');
+      params.set('customerEmail', order.emailAddress || '');
+      params.set('customerPhone', order.phoneNumber || '');
+      params.set('service', service);
+      params.set('category', order.orderType || 'Request Service');
+      params.set('device', device);
+      params.set('fulfillment', order.fulfillmentType || '');
+      params.set('amount', amount);
+      params.set('status', status);
+      params.set('description', descriptionParts.join(' | '));
+      params.set('notes', workspace.workspaceNotes || order.notes || '');
+      params.set('paymentMethod', workspace.paymentMethod || 'PayPal');
+      params.set('supportRoute', workspace.supportRoute || order.supportRoute || 'support.html');
+
+      return 'admin-checkout-link-generator.html?' + params.toString();
+    }
+
 
     function getRecommendedNextMove(order, workspace) {
       const status = normalizeStatus(workspace.orderStatus || order.orderStatus || "");
@@ -2159,7 +2190,16 @@ If you need help during setup, reach out with your name and the details of the i
     });
 
     openGeneratorBtn.addEventListener("click", () => {
-      setDraftMessage("Checkout link generator page is not live in this repo yet.", "error");
+      const order = getOrderById(selectedOrderId);
+      if (!order) {
+        setDraftMessage("Select an order first.", "error");
+        return;
+      }
+
+      const workspace = getCurrentWorkspaceState();
+      const targetUrl = buildCheckoutGeneratorUrl(order, workspace);
+      window.open(targetUrl, "_blank");
+      setDraftMessage("Checkout link generator opened with the selected order prefilled.", "ok");
     });
 
     document.querySelectorAll(".message-tab").forEach(tab => {
