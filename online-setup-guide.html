@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+    File: online-setup-guide.html
+    Version: 1.0
+    Updated: 2026-04-06
+    Change Notes:
+    - Rebuilt the old online support content into a public-safe setup confidence page for the rebuild
+    - Kept the setup video, IPTV Smarters guidance, Xtream Codes login flow, and basic troubleshooting
+    - Removed any routing to the app library and removed placeholder contact blocks that did not fit the new build
+    - Styled the page to match the current rebuild layout and mapped it as a pre-purchase confidence page
+  -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Setup Guide | 4MyIPTV Service</title>
+  <meta name="description" content="See how online IPTV setup works with IPTV Smarters Pro, Xtream Codes login, and a simple beginner-friendly walkthrough." />
+  <style>
+    :root {
+      --bg: #07101d;
+      --bg-2: #0a1628;
+      --panel: rgba(16, 32, 58, 0.94);
+      --panel-2: rgba(19, 40, 72, 0.96);
+      --line: rgba(255,255,255,0.10);
+      --text: #f4f7fb;
+      --muted: #b8c4d8;
+      --primary: #2ec8ff;
+      --primary-dark: #149bc9;
+      --accent: #68f0c1;
+      --primary-soft: rgba(46, 200, 255, 0.12);
+      --accent-soft: rgba(104, 240, 193, 0.10);
+      --warning-soft: rgba(255, 209, 102, 0.12);
+      --warning-line: rgba(255, 209, 102, 0.30);
+      --success-soft: rgba(104, 240, 193, 0.12);
+      --success-line: rgba(104, 240, 193, 0.22);
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.30);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      line-height: 1.55;
+      background:
+        radial-gradient(circle at top left, rgba(46,200,255,0.16), transparent 22%),
+        radial-gradient(circle at top right, rgba(104,240,193,0.08), transparent 18%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(7,16,29,0.86);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar-inner {
+      min-height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-title {
+      font-size: 1.08rem;
+      font-weight: 800;
+    }
+
+    .brand-sub {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 2px;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link,
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+      text-align: center;
+    }
+
+    .nav-link {
+      color: var(--muted);
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--line);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #04111c;
+      box-shadow: 0 14px 28px rgba(46,200,255,0.26);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.03);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .hero {
+      padding: 56px 0 22px;
+    }
+
+    .hero-shell,
+    .panel,
+    .cta-band,
+    .video-panel,
+    .notice-band {
+      background: linear-gradient(180deg, rgba(19,40,72,0.94), rgba(9,20,37,0.98));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-shell {
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-shell::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      bottom: -90px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(46,200,255,0.18) 0%, rgba(46,200,255,0) 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      border: 1px solid rgba(46,200,255,0.24);
+      color: #d9f7ff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2.1rem, 4vw, 3.45rem);
+      line-height: 1.06;
+      letter-spacing: -0.8px;
+      max-width: 13ch;
+    }
+
+    .tagline {
+      margin: 0 0 16px;
+      color: #dff9ff;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.95rem;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68ch;
+      font-size: 1.08rem;
+    }
+
+    .hero-actions,
+    .cta-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+
+    .hero-note {
+      margin-top: 18px;
+      color: #dbeafe;
+      font-size: 0.94rem;
+    }
+
+    .hero-note strong { color: #ffffff; }
+
+    section {
+      padding: 18px 0 10px;
+    }
+
+    .section-head {
+      margin-bottom: 18px;
+    }
+
+    .section-head h2 {
+      margin: 0 0 8px;
+      font-size: clamp(1.55rem, 2.4vw, 2.15rem);
+      letter-spacing: -0.02em;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 72ch;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .step-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .step-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .panel,
+    .video-panel,
+    .cta-band,
+    .notice-band {
+      padding: 24px;
+    }
+
+    .info-card,
+    .step-card,
+    .problem-card,
+    .detail-card {
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255,255,255,0.03);
+      padding: 18px;
+    }
+
+    .info-card strong,
+    .step-card strong,
+    .problem-card strong,
+    .detail-card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .info-card p,
+    .step-card p,
+    .problem-card p,
+    .detail-card p,
+    .detail-card li {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .detail-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .detail-card li + li {
+      margin-top: 8px;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      background: var(--primary-soft);
+      border: 1px solid rgba(46,200,255,0.24);
+      color: #d9f7ff;
+      font-weight: 800;
+    }
+
+    .video-panel {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .video-callout {
+      border-radius: 15px;
+      border: 1px solid rgba(46,200,255,0.22);
+      background: rgba(46,200,255,0.08);
+      padding: 18px;
+      color: #dff9ff;
+    }
+
+    .video-callout strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1rem;
+      color: #ffffff;
+    }
+
+    .video-callout p {
+      margin: 0;
+      color: #dff9ff;
+      font-size: 0.95rem;
+    }
+
+    .notice-band {
+      background: linear-gradient(180deg, rgba(28,36,51,0.96), rgba(11,17,31,0.98));
+      border-color: var(--warning-line);
+    }
+
+    .notice-band p {
+      margin: 0;
+      color: #f8e7b0;
+    }
+
+    .notice-band strong { color: #fff3c4; }
+
+    footer {
+      padding: 26px 0 34px;
+      color: var(--muted);
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 980px) {
+      .grid-4,
+      .grid-3,
+      .grid-2,
+      .step-grid,
+      .video-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        padding-top: 42px;
+      }
+
+      .hero-shell,
+      .panel,
+      .cta-band,
+      .video-panel,
+      .notice-band {
+        padding: 22px;
+      }
+
+      .nav-actions,
+      .hero-actions,
+      .cta-actions {
+        width: 100%;
+      }
+
+      .nav-link,
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div>
+        <div class="brand-title">4MyIPTV Service</div>
+        <div class="brand-sub">Stream More • Pay Less • Watch Anywhere</div>
+      </div>
+      <nav class="nav-actions" aria-label="Primary navigation">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="sell-sheet.html">Plans &amp; Devices</a>
+        <a class="nav-link" href="request-service.html">Request Service</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-shell">
+        <div class="eyebrow">Beginner-friendly setup overview</div>
+        <h1>Online Setup Guide</h1>
+        <p class="tagline">Stream More • Pay Less • Watch Anywhere</p>
+        <p class="lead">
+          This page shows how online setup works before you buy and helps new customers understand what the process looks like after purchase. It stays focused on IPTV Smarters Pro, Xtream Codes login, and a simple path that feels manageable from the start.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="request-service.html">Request Service</a>
+          <a class="btn btn-secondary" href="sell-sheet.html">Back to Plans &amp; Devices</a>
+        </div>
+        <p class="hero-note"><strong>Good fit for:</strong> customers who want to see how the online setup works before committing, or new online customers who want a clean walkthrough after receiving login details.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>What this page helps you understand</h2>
+          <p>
+            The goal here is not to overload you. The goal is to make the process feel clear. You can use this guide to see what information is needed, what app is typically used, how the login works, and what to try if something does not go smoothly the first time.
+          </p>
+        </div>
+        <div class="grid-3">
+          <div class="info-card">
+            <strong>What you need</strong>
+            <p>Your username, password, and server URL, plus a compatible Android-based device with IPTV Smarters Pro installed.</p>
+          </div>
+          <div class="info-card">
+            <strong>What this covers</strong>
+            <p>This guide covers the standard IPTV Smarters Pro setup flow using Xtream Codes login. It does not cover customer-only app downloads or advanced device builds.</p>
+          </div>
+          <div class="info-card">
+            <strong>Why this matters before purchase</strong>
+            <p>Seeing the setup path ahead of time helps remove uncertainty and makes it easier to choose the right service path for your comfort level.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>Three simple steps</h2>
+          <p>
+            Most online setups follow the same pattern. Install the app, choose the correct login method, and enter the details exactly as provided.
+          </p>
+        </div>
+        <div class="step-grid">
+          <article class="step-card">
+            <div class="step-number">1</div>
+            <strong>Install IPTV Smarters Pro</strong>
+            <p>Start with IPTV Smarters Pro on your compatible Android-based device. This is the app used for the standard online setup path shown here.</p>
+          </article>
+          <article class="step-card">
+            <div class="step-number">2</div>
+            <strong>Choose Xtream Codes API</strong>
+            <p>Open the app and select <strong>Login with Xtream Codes API</strong>. Using the wrong login type is one of the most common setup mistakes.</p>
+          </article>
+          <article class="step-card">
+            <div class="step-number">3</div>
+            <strong>Enter your details exactly</strong>
+            <p>Use the username, password, and server URL exactly as provided. Copy and paste when possible to reduce typos and spacing mistakes.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="video-panel">
+          <div>
+            <div class="section-head" style="margin-bottom:0;">
+              <h2>Watch the setup walkthrough</h2>
+              <p>
+                If you would rather see the login flow before you start, this short video gives you a quick look at the process. That makes it useful both as a confidence-builder before purchase and as a simple refresher after you receive your login details.
+              </p>
+            </div>
+            <div class="cta-actions">
+              <a class="btn btn-primary" href="https://www.youtube.com/watch?v=ApwZjqpP9fs" target="_blank" rel="noopener noreferrer">Watch Setup Video</a>
+              <a class="btn btn-secondary" href="request-service.html">Need Help Choosing First?</a>
+            </div>
+          </div>
+          <div class="video-callout">
+            <strong>What to watch for</strong>
+            <p>Pay attention to the login type, the exact placement of your username and password, and the server URL field. Those three details solve most early setup questions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>Keep these details ready</h2>
+          <p>
+            Having the right information in front of you makes the process much smoother.
+          </p>
+        </div>
+        <div class="grid-2">
+          <article class="detail-card">
+            <strong>Required information</strong>
+            <ul>
+              <li>Username</li>
+              <li>Password</li>
+              <li>Server URL</li>
+            </ul>
+          </article>
+          <article class="detail-card">
+            <strong>Best setup habit</strong>
+            <p>Use copy and paste whenever possible. Even a small typo or extra space can cause login problems that look bigger than they really are.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>Basic troubleshooting</h2>
+          <p>
+            If the first login attempt does not work, check these common issues before assuming something is seriously wrong.
+          </p>
+        </div>
+        <div class="grid-3">
+          <article class="problem-card">
+            <strong>Wrong login type</strong>
+            <p>Make sure you selected <strong>Xtream Codes API</strong> and not another login option inside the app.</p>
+          </article>
+          <article class="problem-card">
+            <strong>Incorrect details</strong>
+            <p>Double-check the username, password, and server URL for typos, missing characters, or extra spaces.</p>
+          </article>
+          <article class="problem-card">
+            <strong>Restart and retry</strong>
+            <p>Restart the app, restart the device, and confirm your internet connection is stable before trying again.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container notice-band">
+        <p><strong>Important service note:</strong> a login is intended for the service and setup provided to you. Using the same login on multiple devices at the same time can reduce quality and create playback issues.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container cta-band">
+        <div>
+          <h2 style="margin:0 0 8px; font-size:clamp(1.55rem, 2.4vw, 2.1rem);">Still deciding or need help after reviewing this?</h2>
+          <p style="margin:0; color:var(--muted); max-width:70ch;">
+            Use the request page if you want help choosing the right plan or device before purchase. If you are already a customer and still need direct help, you can also use support after the setup basics here have been reviewed.
+          </p>
+        </div>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="request-service.html">Request Service</a>
+          <a class="btn btn-secondary" href="support.html">Existing Customer Support</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-row">
+      <div>4MyIPTV Service</div>
+      <div>Version 1.0 • Updated April 6, 2026</div>
+    </div>
+  </footer>
+</body>
+</html>
