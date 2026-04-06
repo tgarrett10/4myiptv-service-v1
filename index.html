@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4MyIPTV Service</title>
-  <meta name="description" content="Version 1.4 of the 4MyIPTV Service homepage with a lighter pre-purchase link to the new Online Setup Guide." />
+  <meta name="description" content="Version 1.6 of the 4MyIPTV Service homepage with text-only branding, clean headers, and button-style education links." />
   <style>
     :root {
       --bg-top: #0c1424;
@@ -68,22 +68,26 @@
     .brand-link {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
       min-width: 0;
     }
 
-    .brand-logo {
-      display: block;
-      width: 190px;
-      max-width: 100%;
-      height: auto;
+    .brand-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
     }
 
-    .brand-text {
-      display: none;
-      font-size: 1.05rem;
+    .brand-title {
+      font-size: 1.08rem;
       font-weight: 700;
       letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .brand-sub {
+      color: var(--muted-2);
+      font-size: 0.82rem;
       white-space: nowrap;
     }
 
@@ -203,13 +207,33 @@
 
     .btn-secondary:hover { background: var(--white-soft-hover); }
 
-    .hero-note {
-      margin-top: 14px;
+    .guide-panel {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .guide-panel strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #ffffff;
+      font-size: 0.98rem;
+    }
+
+    .guide-panel p {
+      margin: 0;
       color: #dbeafe;
       font-size: 0.93rem;
     }
 
-    .hero-note strong { color: #ffffff; }
+    .guide-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
 
     .hero-side {
       display: grid;
@@ -341,13 +365,7 @@
       justify-content: center;
       gap: 10px;
       flex-wrap: wrap;
-    }
-
-    .footer-logo {
-      width: 150px;
-      max-width: 100%;
-      height: auto;
-      opacity: 0.94;
+      font-weight: 600;
     }
 
     .site-footer {
@@ -375,7 +393,6 @@
       }
 
       .hero h1 { font-size: 2.15rem; }
-      .brand-logo { width: 168px; }
     }
 
     @media (max-width: 720px) {
@@ -390,6 +407,11 @@
       .nav-links a {
         flex: 1 1 auto;
         text-align: center;
+      }
+
+      .brand-title,
+      .brand-sub {
+        white-space: normal;
       }
 
       .page-wrap {
@@ -411,8 +433,9 @@
         width: 100%;
       }
 
-      .brand-logo {
-        width: 156px;
+      .brand-title,
+      .brand-sub {
+        white-space: normal;
       }
     }
   </style>
@@ -420,20 +443,22 @@
 <body>
   <!--
     Page: index.html
-    Version: 1.5
+    Version: 1.6
     Change Notes:
     - Strengthened homepage conversion copy and page hierarchy
-    - Added approved brand logo to the header and footer
-    - Replaced flatter routing sections with value, process, and confidence sections
-    - Added the What is IPTV? video as the primary educational link from the homepage
+    - Removed the broken logo and switched to clean text-only branding
+    - Converted the video education links into clear button-style actions on the homepage
+    - Kept the What is IPTV? video as the primary educational path
     - Kept the Online Setup Guide as a secondary pre-purchase confidence path
     - Preserved the rebuild navigation structure and core page flow
   -->
   <header class="site-header">
     <div class="nav-wrap">
       <a class="brand-link" href="index.html" aria-label="4MyIPTV Service Home">
-        <img class="brand-logo" src="4My IPTV Service logo.png" alt="4MyIPTV Service logo" />
-        <span class="brand-text">4MyIPTV Service</span>
+        <div class="brand-stack">
+          <span class="brand-title">4MyIPTV Service</span>
+          <span class="brand-sub">Stream More • Pay Less • Watch Anywhere</span>
+        </div>
       </a>
       <nav class="nav-links" aria-label="Main Navigation">
         <a href="index.html" class="active">Home</a>
@@ -458,7 +483,14 @@
             <a class="btn btn-secondary" href="request-service.html">Request Service</a>
             <a class="btn btn-secondary" href="support.html">Existing Customer Support</a>
           </div>
-          <div class="hero-note"><strong>Need help choosing?</strong> Start with the <a href="https://www.youtube.com/watch?v=rl9BahEpWJU" target="_blank" rel="noopener noreferrer" style="color:#ffffff; text-decoration:underline; font-weight:700;">What is IPTV?</a> video for a quick overview, then <a href="online-setup-guide.html" style="color:#ffffff; text-decoration:underline; font-weight:700;">see how online setup works</a> if you want a closer look at the process.</div>
+          <div class="guide-panel">
+            <strong>New to IPTV or still deciding?</strong>
+            <p>Start with a quick overview first, then take a closer look at how the online setup works before you request service.</p>
+            <div class="guide-actions">
+              <a class="btn btn-secondary" href="https://www.youtube.com/watch?v=rl9BahEpWJU" target="_blank" rel="noopener noreferrer">Watch What IPTV Is</a>
+              <a class="btn btn-secondary" href="online-setup-guide.html">See How Setup Works</a>
+            </div>
+          </div>
         </div>
 
         <div class="hero-side">
@@ -471,13 +503,8 @@
             </ul>
           </div>
           <div class="hero-side-card">
-            <h3>New to IPTV?</h3>
-            <p>Start with a quick video that explains what IPTV is and what to expect before you request service.</p>
-            <div class="cta-row" style="margin-top:14px;">
-              <a class="btn btn-secondary" href="https://www.youtube.com/watch?v=rl9BahEpWJU" target="_blank" rel="noopener noreferrer">Watch What IPTV Is</a>
-              <a class="btn btn-secondary" href="online-setup-guide.html">See How Setup Works</a>
-            </div>
-            <p style="margin-top:14px; font-size:0.92rem; color:#cfe2ff;">Most requests receive a response within a few hours and no later than 24 hours EST.</p>
+            <h3>Fast next steps</h3>
+            <p>Most requests receive a response within a few hours and no later than 24 hours EST.</p>
           </div>
         </div>
       </div>
@@ -579,11 +606,8 @@
   </main>
 
   <footer class="site-footer">
-    <div class="footer-brand">
-      <img class="footer-logo" src="4My IPTV Service logo.png" alt="4MyIPTV Service logo" />
-      <span>4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</span>
-    </div>
-    <span class="version">Version 1.4</span>
+    <div class="footer-brand">4MyIPTV Service • Stream More • Pay Less • Watch Anywhere</div>
+    <span class="version">Version 1.6</span>
   </footer>
 </body>
 </html>
