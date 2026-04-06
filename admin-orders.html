@@ -1917,13 +1917,13 @@ If you need help during setup, reach out with your name and the details of the i
           method: 'POST',
           mode: 'no-cors',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
           body
         });
 
-        setDraftMessage('Save request sent to sheet. Refreshing orders...', 'ok');
-        await new Promise(resolve => setTimeout(resolve, 1200));
+        setDraftMessage('Save request sent. Reloading orders...', 'ok');
+        await new Promise(resolve => setTimeout(resolve, 1800));
         await loadOrders(true);
         if (selectedOrderId) {
           const refreshed = getOrderById(selectedOrderId);
@@ -2041,9 +2041,11 @@ If you need help during setup, reach out with your name and the details of the i
       }
       ordersTableBody.innerHTML = '<tr><td colspan="19" class="empty-state">Loading orders.</td></tr>';
 
-      fetch(APPS_SCRIPT_URL, {
+      const ordersUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+      fetch(ordersUrl, {
         method: "GET",
-        redirect: "follow"
+        redirect: "follow",
+        cache: "no-store"
       })
       .then(response => {
         if (!response.ok) {
