@@ -1031,6 +1031,16 @@
               </div>
 
               <div class="field-group">
+                <label for="amountPaid">Amount Paid</label>
+                <input id="amountPaid" type="number" min="0" step="0.01" placeholder="0.00" />
+              </div>
+
+              <div class="field-group">
+                <label for="balanceDue">Balance Due</label>
+                <input id="balanceDue" type="text" placeholder="0.00" readonly />
+              </div>
+
+              <div class="field-group">
                 <label for="paymentMethod">Payment Method</label>
                 <select id="paymentMethod">
                   <option value="">Select payment method</option>
@@ -1078,6 +1088,7 @@
                 <label for="paymentStatusSelect">Payment Status</label>
                 <select id="paymentStatusSelect">
                   <option value="">Select payment status</option>
+                  <option value="QUOTE PENDING">QUOTE PENDING</option>
                   <option value="UNPAID">UNPAID</option>
                   <option value="PENDING">PENDING</option>
                   <option value="PAYMENT SENT">PAYMENT SENT</option>
@@ -1183,7 +1194,7 @@
 
     <div class="footer-strip">
       <strong>4MyIPTV Service • Admin Orders</strong>
-      <div class="version">Version 2.7 • Last Updated: April 5, 2026</div>
+      <div class="version">Version 2.8 • Last Updated: April 5, 2026</div>
     </div>
   </div>
 
@@ -1234,6 +1245,8 @@
     const finalPlanEl = document.getElementById("finalPlan");
     const finalDeviceEl = document.getElementById("finalDevice");
     const quoteAmountEl = document.getElementById("quoteAmount");
+    const amountPaidEl = document.getElementById("amountPaid");
+    const balanceDueEl = document.getElementById("balanceDue");
     const paymentMethodEl = document.getElementById("paymentMethod");
     const paymentLinkEl = document.getElementById("paymentLink");
     const supportRouteEl = document.getElementById("supportRoute");
@@ -1576,11 +1589,30 @@
       loadSuggestionBtn.disabled = !selectedOrderId;
     }
 
+    function calculateBalanceDueValue(quoteAmount, amountPaid) {
+      const quote = numericAmount(quoteAmount || 0);
+      const paid = numericAmount(amountPaid || 0);
+      const due = Math.max(quote - paid, 0);
+      return due.toFixed(2);
+    }
+
+    function updateBalanceDue() {
+      const quoteValue = safeRaw(quoteAmountEl.value);
+      const paidValue = safeRaw(amountPaidEl.value);
+      if (!quoteValue && !paidValue) {
+        balanceDueEl.value = '';
+        return;
+      }
+      balanceDueEl.value = calculateBalanceDueValue(quoteValue, paidValue);
+    }
+
     function getCurrentWorkspaceState() {
       return {
         finalPlan: finalPlanEl.value,
         finalDevice: finalDeviceEl.value,
         quoteAmount: quoteAmountEl.value,
+        amountPaid: amountPaidEl.value,
+        balanceDue: balanceDueEl.value,
         paymentMethod: paymentMethodEl.value,
         paymentLink: paymentLinkEl.value,
         supportRoute: supportRouteEl.value,
@@ -1594,6 +1626,8 @@
       finalPlanEl.value = safeRaw(state.finalPlan);
       finalDeviceEl.value = safeRaw(state.finalDevice);
       quoteAmountEl.value = safeRaw(state.quoteAmount);
+      amountPaidEl.value = safeRaw(state.amountPaid);
+      balanceDueEl.value = safeRaw(state.balanceDue);
       paymentMethodEl.value = safeRaw(state.paymentMethod);
       paymentLinkEl.value = safeRaw(state.paymentLink);
       supportRouteEl.value = safeRaw(state.supportRoute);
@@ -1601,6 +1635,7 @@
       paymentStatusSelectEl.value = safeRaw(state.paymentStatus);
       workspaceNotesEl.value = safeRaw(state.workspaceNotes);
       updateSuggestedTotal();
+      updateBalanceDue();
       updateMessagePreview();
     }
 
@@ -1608,11 +1643,15 @@
       const finalPlan = parsePlanFromRequest(order.planInterest);
       const finalDevice = parseDeviceFromRequest(order.deviceSelected);
       const quoteAmount = order.quoteAmount ? String(numericAmount(order.quoteAmount).toFixed(2)) : "";
+      const amountPaid = order.amountPaid ? String(numericAmount(order.amountPaid).toFixed(2)) : "";
+      const balanceDue = order.balanceDue ? String(numericAmount(order.balanceDue).toFixed(2)) : (quoteAmount || "");
       return {
         finalPlan,
         finalDevice,
         quoteAmount,
-        paymentMethod: "",
+        amountPaid,
+        balanceDue,
+        paymentMethod: order.paymentMethod || "",
         paymentLink: order.paymentLink || "",
         supportRoute: order.supportRoute || "",
         orderStatus: order.orderStatus || "",
@@ -1696,7 +1735,8 @@ If you would like to move forward, I can send the payment request next.`;
 
     function buildPaymentMessage(order, workspace) {
       const customerName = order.customerName || "there";
-      const amount = workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount());
+      const total = workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount());
+      const balance = workspace.balanceDue ? money(numericAmount(workspace.balanceDue)) : total;
       const method = workspace.paymentMethod || "the payment method we discussed";
       const link = safeRaw(workspace.paymentLink);
       const paymentLine = link
@@ -1707,7 +1747,8 @@ If you would like to move forward, I can send the payment request next.`;
 
 Your order is ready to move forward.
 
-Total due: ${amount}
+Total quote: ${total}
+Balance due: ${balance}
 Payment method: ${method}
 ${paymentLine}
 
@@ -1746,6 +1787,8 @@ If you need help during setup, reach out with your name and the details of the i
         "Plan: " + (workspace.finalPlan || order.planInterest || "-"),
         "Device: " + (workspace.finalDevice || order.deviceSelected || "-"),
         "Quote Amount: " + amount,
+        "Amount Paid: " + (workspace.amountPaid ? money(numericAmount(workspace.amountPaid)) : "-"),
+        "Balance Due: " + (workspace.balanceDue ? money(numericAmount(workspace.balanceDue)) : "-"),
         "Payment Method: " + (workspace.paymentMethod || "-"),
         "Payment Link: " + (workspace.paymentLink || "-"),
         "Order Status: " + (workspace.orderStatus || order.orderStatus || "-"),
@@ -1802,6 +1845,7 @@ If you need help during setup, reach out with your name and the details of the i
 
       const workspace = getCurrentWorkspaceState();
       const amount = workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount());
+      const balance = workspace.balanceDue ? money(numericAmount(workspace.balanceDue)) : (workspace.quoteAmount ? money(numericAmount(workspace.quoteAmount)) : money(getSuggestedQuoteAmount()));
       const recommendation = getRecommendedNextMove(order, workspace);
       const route = workspace.supportRoute || order.supportRoute || '-';
 
@@ -1821,6 +1865,10 @@ If you need help during setup, reach out with your name and the details of the i
             <div class="value">${escapeHtml(amount)}</div>
           </div>
           <div class="summary-chip">
+            <div class="label">Balance Due</div>
+            <div class="value">${escapeHtml(balance)}</div>
+          </div>
+          <div class="summary-chip">
             <div class="label">Support Route</div>
             <div class="value">${escapeHtml(route)}</div>
           </div>
@@ -1838,6 +1886,8 @@ If you need help during setup, reach out with your name and the details of the i
         finalPlan: workspace.finalPlan || order.planInterest || '',
         finalDevice: workspace.finalDevice || order.deviceSelected || '',
         quoteAmount: workspace.quoteAmount || (getSuggestedQuoteAmount() ? getSuggestedQuoteAmount().toFixed(2) : ''),
+        amountPaid: workspace.amountPaid || '',
+        balanceDue: workspace.balanceDue || '',
         paymentMethod: workspace.paymentMethod || '',
         paymentLink: workspace.paymentLink || '',
         supportRoute: workspace.supportRoute || order.supportRoute || '',
@@ -1950,6 +2000,10 @@ If you need help during setup, reach out with your name and the details of the i
 
     function syncDraftAndPreview() {
       updateSuggestedTotal();
+      updateBalanceDue();
+      if (selectedOrderId) {
+        saveDraftForOrder(selectedOrderId, getCurrentWorkspaceState());
+      }
       updateMessagePreview();
     }
 
@@ -2063,7 +2117,7 @@ If you need help during setup, reach out with your name and the details of the i
     paymentFilter.addEventListener("change", renderOrders);
     sortFilter.addEventListener("change", renderOrders);
 
-    [finalPlanEl, finalDeviceEl, quoteAmountEl, paymentMethodEl, paymentLinkEl, supportRouteEl, orderStatusSelectEl, paymentStatusSelectEl, workspaceNotesEl].forEach(el => {
+    [finalPlanEl, finalDeviceEl, quoteAmountEl, amountPaidEl, paymentMethodEl, paymentLinkEl, supportRouteEl, orderStatusSelectEl, paymentStatusSelectEl, workspaceNotesEl].forEach(el => {
       el.addEventListener("input", syncDraftAndPreview);
       el.addEventListener("change", syncDraftAndPreview);
     });
@@ -2071,6 +2125,7 @@ If you need help during setup, reach out with your name and the details of the i
     loadSuggestionBtn.addEventListener("click", () => {
       const suggested = getSuggestedQuoteAmount();
       quoteAmountEl.value = suggested ? suggested.toFixed(2) : "";
+      updateBalanceDue();
       syncDraftAndPreview();
       setDraftMessage("Suggested total loaded into the quote amount field.", "ok");
     });
