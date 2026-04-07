@@ -1,302 +1,502 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard | 4MyIPTV Service</title>
-  <meta name="description" content="Internal control center for panel access, orders, backend tools, and live customer flow testing for 4MyIPTV Service." />
-  <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --panel-2: #1f2937;
-      --line: #334155;
-      --text: #f8fafc;
-      --muted: #cbd5e1;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-      --soft: rgba(255,255,255,0.08);
-      --soft-hover: rgba(255,255,255,0.14);
-      --max-width: 1180px;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
-      color: var(--text);
-      line-height: 1.5;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    .site-header {
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(8px);
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
-
-    .nav-wrap {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .brand {
-      font-size: 1.08rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .nav-links a {
-      padding: 8px 12px;
-      border-radius: 8px;
-      color: var(--muted);
-      transition: background 0.2s ease, color 0.2s ease;
-    }
-
-    .nav-links a:hover,
-    .nav-links a.active {
-      background: rgba(255,255,255,0.08);
-      color: var(--text);
-    }
-
-    .page-wrap {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 32px 20px 60px;
-    }
-
-    .hero {
-      margin-bottom: 22px;
-    }
-
-    .hero h1 {
-      margin: 0 0 8px;
-      font-size: 2rem;
-      line-height: 1.15;
-    }
-
-    .hero p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.98rem;
-      max-width: 860px;
-    }
-
-    .section-block {
-      background: rgba(17, 24, 39, 0.94);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    .section-title {
-      margin: 0 0 12px;
-      font-size: 1.02rem;
-      font-weight: 700;
-    }
-
-    .section-copy {
-      margin: 0 0 14px;
-      color: var(--muted);
-      font-size: 0.94rem;
-    }
-
-    .button-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 12px 18px;
-      border-radius: 10px;
-      font-weight: 700;
-      transition: background 0.2s ease;
-      border: 1px solid transparent;
-      text-align: center;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .btn-primary:hover { background: var(--accent-hover); }
-
-    .btn-secondary {
-      background: var(--soft);
-      color: var(--text);
-      border-color: rgba(255,255,255,0.08);
-    }
-
-    .btn-secondary:hover { background: var(--soft-hover); }
-
-    .focus-card {
-      background: rgba(31, 41, 55, 0.75);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 16px;
-    }
-
-    .focus-card ul {
-      margin: 0;
-      padding-left: 18px;
-      color: var(--muted);
-      font-size: 0.93rem;
-    }
-
-    .focus-card li {
-      margin-bottom: 8px;
-    }
-
-    .change-note {
-      margin-top: 14px;
-      color: #94a3b8;
-      font-size: 0.86rem;
-    }
-
-    .site-footer {
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding: 22px 20px 28px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.92rem;
-    }
-
-    .version {
-      display: block;
-      margin-top: 8px;
-      font-size: 0.85rem;
-      color: #94a3b8;
-    }
-
-    @media (max-width: 640px) {
-      .button-row { flex-direction: column; }
-      .btn { width: 100%; }
-      .hero h1 { font-size: 1.7rem; }
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>4MyIPTV Service Admin Dashboard</title>
+<!-- Version 2.2 update: Rebuilt the admin dashboard into a more complete command center, added stronger payment and customer-flow visibility, removed duplicate shortcut clutter, and kept broad operational access in a cleaner structure. -->
+<style>
+:root{
+  --bg:#08111f;
+  --panel:#101827;
+  --panel-soft:#0b1220;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --border:#1f2937;
+  --line:#243044;
+  --panel-primary:#22c55e;
+  --panel-secondary:#f59e0b;
+  --admin-btn:#1d4ed8;
+  --customer-btn:#475569;
+  --tool-btn:#7c3aed;
+  --danger:#ef4444;
+  --warn:#f59e0b;
+  --ok:#22c55e;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:linear-gradient(180deg,#08111f,#0f172a);
+  color:var(--text);
+}
+.wrap{max-width:1240px;margin:auto;padding:20px}
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:22px;
+  margin-bottom:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.18);
+}
+h1{margin:0 0 10px;color:#86efac;text-align:center}
+h2{margin:0 0 8px;font-size:24px}
+h3{margin:0 0 8px;font-size:18px}
+p{margin:0}
+.tagline{
+  text-align:center;
+  margin-bottom:8px;
+  color:#cbd5f5;
+  font-weight:600;
+}
+.intro{
+  text-align:center;
+  color:var(--muted);
+  max-width:900px;
+  margin:0 auto;
+  line-height:1.6;
+}
+.nav-row,
+.panel-grid,
+.action-grid,
+.info-grid,
+.customer-grid,
+.tool-grid,
+.status-grid,
+.two-col{
+  display:grid;
+  gap:16px;
+}
+.nav-row{grid-template-columns:repeat(5,minmax(0,1fr));margin-top:18px}
+.panel-grid{grid-template-columns:2fr 1.25fr}
+.action-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.info-grid{grid-template-columns:repeat(4,1fr)}
+.customer-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.tool-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.status-grid{grid-template-columns:repeat(3,1fr)}
+.two-col{grid-template-columns:repeat(2,1fr)}
+.btn,
+.nav-btn,
+.panel-btn,
+.action-btn,
+.mini-btn,
+.status-pill{
+  text-decoration:none;
+  border-radius:14px;
+  font-weight:bold;
+}
+.nav-btn,
+.action-btn,
+.mini-btn{
+  display:block;
+  text-align:center;
+  padding:13px 14px;
+  border:1px solid rgba(255,255,255,.08);
+  color:#fff;
+  font-size:14px;
+}
+.nav-btn.admin,.action-btn.admin,.mini-btn.admin{background:var(--admin-btn)}
+.nav-btn.customer,.action-btn.customer,.mini-btn.customer{background:var(--customer-btn)}
+.nav-btn.tool,.action-btn.tool,.mini-btn.tool{background:var(--tool-btn)}
+.nav-btn.panel,.action-btn.panel,.mini-btn.panel{background:#166534}
+.panel-box{
+  background:linear-gradient(180deg,#0f172a,#111827);
+  border:1px solid #263246;
+  border-radius:18px;
+  padding:22px;
+}
+.panel-box.primary{
+  border-color:rgba(34,197,94,.35);
+  box-shadow:0 0 0 1px rgba(34,197,94,.08) inset;
+}
+.panel-box.secondary{border-color:rgba(245,158,11,.30)}
+.panel-label{
+  color:#bbf7d0;
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.panel-box.secondary .panel-label{color:#fde68a}
+.panel-title{font-size:28px;margin-bottom:8px}
+.panel-sub{color:var(--muted);line-height:1.5;margin-bottom:18px}
+.panel-btn{
+  display:inline-block;
+  padding:16px 20px;
+  color:#052e16;
+  background:var(--panel-primary);
+  border:1px solid rgba(255,255,255,.08);
+}
+.panel-box.secondary .panel-btn{
+  color:#422006;
+  background:var(--panel-secondary);
+}
+.section-sub{
+  color:var(--muted);
+  line-height:1.55;
+  margin-bottom:16px;
+  font-size:14px;
+}
+.section-note{
+  color:var(--muted);
+  line-height:1.45;
+  font-size:13px;
+  margin-top:10px;
+}
+.legend-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.legend-pill{
+  display:inline-block;
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:12px;
+  font-weight:bold;
+  border:1px solid rgba(255,255,255,.08);
+}
+.legend-admin{background:var(--admin-btn);color:#fff}
+.legend-customer{background:var(--customer-btn);color:#fff}
+.legend-panel{background:var(--panel-primary);color:#052e16}
+.legend-tool{background:var(--tool-btn);color:#fff}
+.info-box,
+.focus-box,
+.tool-box,
+.action-box,
+.status-box{
+  background:var(--panel-soft);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+}
+.info-box h3,
+.focus-box h3,
+.tool-box h3,
+.action-box h3{margin-bottom:6px}
+.info-box p,
+.focus-box p,
+.tool-box p,
+.action-box p,
+.status-note{color:var(--muted);line-height:1.5;font-size:14px}
+.status-label{
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.status-value{font-size:16px;font-weight:bold;color:var(--text)}
+.status-pill{
+  display:inline-block;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:13px;
+  border:1px solid transparent;
+}
+.status-ok{background:rgba(34,197,94,.12);color:#bbf7d0;border-color:rgba(34,197,94,.25)}
+.status-soon{background:rgba(245,158,11,.12);color:#fde68a;border-color:rgba(245,158,11,.28)}
+.status-overdue{background:rgba(239,68,68,.12);color:#fecaca;border-color:rgba(239,68,68,.28)}
+.action-row{margin-top:16px;display:flex;flex-wrap:wrap;gap:12px}
+.priority-list{margin:0;padding-left:18px;color:var(--muted);line-height:1.7}
+.priority-list li{margin-bottom:6px}
+.footer{text-align:center;color:#94a3b8;margin-top:20px;font-size:13px}
+.nav-btn:hover,.panel-btn:hover,.action-btn:hover,.mini-btn:hover{opacity:.93}
+@media(max-width:1100px){
+  .nav-row{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .action-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .info-grid{grid-template-columns:repeat(2,1fr)}
+  .customer-grid,.tool-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .panel-grid,.status-grid,.two-col{grid-template-columns:1fr}
+  .customer-grid,.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .wrap{padding:16px}
+  .card{padding:18px}
+  .nav-row,.action-grid,.info-grid,.customer-grid,.tool-grid{grid-template-columns:1fr}
+  .panel-title{font-size:24px}
+}
+</style>
 </head>
 <body>
-  <!--
-    Page: admin-dashboard.html
-    Version: 2.1
-    Change Notes:
-    - Updated from v2.0 to v2.1
-    - Improved launch flow for daily use
-    - Promoted Orders Sheet into Priority Actions
-    - Added Customer Records access to operations
-    - Reduced duplicate shortcut structure
-    - Added a small daily focus note
-  -->
+<div class="wrap">
 
-  <header class="site-header">
-    <div class="nav-wrap">
-      <div class="brand">4MyIPTV Service Admin</div>
-      <nav class="nav-links" aria-label="Internal Navigation">
-        <a href="admin-dashboard.html" class="active">Admin Dashboard</a>
-        <a href="admin-orders.html">Admin Orders</a>
-        <a href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Orders Sheet</a>
-        <a href="index.html">Homepage</a>
-      </nav>
+  <div class="card">
+    <h1>4MyIPTV Service Admin Dashboard</h1>
+    <div class="tagline">Stream More • Pay Less • Watch Anywhere</div>
+    <div class="intro">
+      Open this page first to manage orders, send payment links, access the panel, open the backend, and check the live customer journey without losing the bigger operating picture.
     </div>
-  </header>
+    <div class="nav-row">
+      <a href="admin-dashboard.html" class="nav-btn admin">Admin Dashboard</a>
+      <a href="admin-orders.html" class="nav-btn admin">Admin Orders</a>
+      <a href="admin-checkout-link-generator.html" class="nav-btn admin">Checkout Link Generator</a>
+      <a href="https://docs.google.com/spreadsheets/d/1rQlVe8TGrnKTELc5_9hT2yrrQ_5G5KzKCh7h-A30A8o/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="nav-btn tool">Full Spreadsheet</a>
+      <a href="index.html" class="nav-btn customer">Homepage</a>
+    </div>
+  </div>
 
-  <main class="page-wrap">
-    <section class="hero">
-      <h1>Admin Dashboard</h1>
-      <p>Open this page first to reach the panel, review active work, open the backend, and test the live customer flow.</p>
-    </section>
-
-    <section class="section-block">
-      <h2 class="section-title">Priority Actions</h2>
-      <div class="button-row">
-        <a class="btn btn-primary" href="https://tvpluspanel.net/" target="_blank" rel="noopener noreferrer">Open TV Panel</a>
-        <a class="btn btn-primary" href="https://backup.tvpluspanel.ru/" target="_blank" rel="noopener noreferrer">Open Backup TV Panel</a>
-        <a class="btn btn-secondary" href="admin-orders.html">Open Admin Orders</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Open Orders Sheet</a>
+  <div class="card">
+    <h2>Service Control Panels</h2>
+    <div class="section-sub">
+      These are the most important operational tools in the system. Use the TV Panel for primary service activation and management. Use the backup panel only when the primary panel is unavailable.
+    </div>
+    <div class="legend-row">
+      <span class="legend-pill legend-panel">Panels = service execution</span>
+      <span class="legend-pill legend-admin">Blue = admin workflow</span>
+      <span class="legend-pill legend-customer">Gray = customer journey</span>
+      <span class="legend-pill legend-tool">Purple = lower-frequency tools</span>
+    </div>
+    <div class="panel-grid" style="margin-top:16px;">
+      <div class="panel-box primary">
+        <div class="panel-label">Primary System</div>
+        <div class="panel-title">TV Panel</div>
+        <div class="panel-sub">
+          Create and manage active services, confirm plan details, and handle the core activation work that drives the customer lifecycle.
+        </div>
+        <a href="https://tvpluspanel.ru/login" target="_blank" rel="noopener noreferrer" class="panel-btn">Open TV Panel</a>
       </div>
-    </section>
-
-    <section class="section-block">
-      <h2 class="section-title">Daily Operations</h2>
-      <div class="button-row">
-        <a class="btn btn-primary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Open Message Templates</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2007863184#gid=2007863184" target="_blank" rel="noopener noreferrer">Open Customer Records</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=1001289470#gid=1001289470" target="_blank" rel="noopener noreferrer">Open Device Inventory</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit" target="_blank" rel="noopener noreferrer">Open Full Spreadsheet</a>
+      <div class="panel-box secondary">
+        <div class="panel-label">Failover System</div>
+        <div class="panel-title">Backup Panel</div>
+        <div class="panel-sub">
+          Secondary access point for continuity when the main panel is unavailable or unstable.
+        </div>
+        <a href="https://backup.tvpluspanel.ru" target="_blank" rel="noopener noreferrer" class="panel-btn">Open Backup Panel</a>
       </div>
-    </section>
+    </div>
+  </div>
 
-    <section class="section-block">
-      <h2 class="section-title">System Tools</h2>
-      <div class="button-row">
-        <a class="btn btn-primary" href="https://script.google.com/u/0/home/projects/1mxIxDhHdUmqDfrsU_MmSXO4feXwh0jf5DNmeZJFDU9nCCP7afRX_iqm1/edit" target="_blank" rel="noopener noreferrer">Open Apps Script Editor</a>
-        <a class="btn btn-secondary" href="https://github.com/tgarrett10/4myiptv-service-v1" target="_blank" rel="noopener noreferrer">Open GitHub Repo</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=91066834#gid=91066834" target="_blank" rel="noopener noreferrer">Open Settings</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2115164029#gid=2115164029" target="_blank" rel="noopener noreferrer">Open Lists</a>
-      </div>
-    </section>
+  <div class="card">
+    <h2>Priority Actions</h2>
+    <div class="section-sub">
+      Start here for the highest-value operational work. This section is meant to speed up execution, not replace the rest of the command center.
+    </div>
+    <div class="action-grid">
+      <a href="https://tvpluspanel.ru/login" target="_blank" rel="noopener noreferrer" class="action-btn panel">Open TV Panel</a>
+      <a href="https://backup.tvpluspanel.ru" target="_blank" rel="noopener noreferrer" class="action-btn panel">Open Backup TV Panel</a>
+      <a href="admin-orders.html" class="action-btn admin">Open Admin Orders</a>
+      <a href="admin-checkout-link-generator.html" class="action-btn admin">Open Checkout Link Generator</a>
+      <a href="https://docs.google.com/spreadsheets/d/1rQlVe8TGrnKTELc5_9hT2yrrQ_5G5KzKCh7h-A30A8o/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="action-btn tool">Open Orders Sheet</a>
+    </div>
+  </div>
 
-    <section class="section-block">
-      <h2 class="section-title">Customer Flow Testing</h2>
-      <div class="button-row">
-        <a class="btn btn-secondary" href="index.html">Open Homepage</a>
-        <a class="btn btn-secondary" href="request-service.html">Open Request Form</a>
-        <a class="btn btn-secondary" href="success.html">Open Success Page</a>
+  <div class="card">
+    <h2>Daily Operations</h2>
+    <div class="section-sub">
+      Keep the broader operating tools visible so the next step does not get missed. This is where admin flow, records, and reporting stay within reach.
+    </div>
+    <div class="info-grid">
+      <div class="info-box">
+        <h3>Message Templates</h3>
+        <p>Open messaging scripts when you need fast customer follow-up, payment messages, or renewal outreach.</p>
+        <div class="action-row">
+          <a href="admin-message-templates.html" class="action-btn admin" style="text-decoration:none;">Open Message Templates</a>
+        </div>
       </div>
-    </section>
+      <div class="info-box">
+        <h3>Customer Records</h3>
+        <p>Use customer records to review status, track renewals, and confirm that completed work is stored in the right place.</p>
+        <div class="action-row">
+          <a href="admin-customers.html" class="action-btn admin" style="text-decoration:none;">Open Customer Records</a>
+        </div>
+      </div>
+      <div class="info-box">
+        <h3>Device Inventory</h3>
+        <p>Open the shared backend when you need to review current inventory details or supporting tabs tied to device work.</p>
+        <div class="action-row">
+          <a href="https://docs.google.com/spreadsheets/d/1rQlVe8TGrnKTELc5_9hT2yrrQ_5G5KzKCh7h-A30A8o/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="action-btn tool" style="text-decoration:none;">Open Device Inventory</a>
+        </div>
+      </div>
+      <div class="info-box">
+        <h3>Full Spreadsheet</h3>
+        <p>Use the full spreadsheet when you need the entire backend view instead of a single operating page or shortcut.</p>
+        <div class="action-row">
+          <a href="https://docs.google.com/spreadsheets/d/1rQlVe8TGrnKTELc5_9hT2yrrQ_5G5KzKCh7h-A30A8o/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="action-btn tool" style="text-decoration:none;">Open Full Spreadsheet</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <section class="section-block">
-      <h2 class="section-title">Quick Access</h2>
-      <div class="button-row">
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Orders</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=715422724#gid=715422724" target="_blank" rel="noopener noreferrer">Message Templates</a>
-        <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/15T-uYqJngYpaw6fs9XjbwDPd9Njb_eT8ua75pythMN0/edit?gid=2007863184#gid=2007863184" target="_blank" rel="noopener noreferrer">Customer Records</a>
-        <a class="btn btn-secondary" href="admin-orders.html">Admin Orders Page</a>
-      </div>
-    </section>
+  <div class="card">
+    <h2>App Check Status</h2>
+    <div class="section-sub">
+      This tracker resets whenever you build a device. If no device is built for 30 days, it reminds you to manually review the app library and device setup path.
+    </div>
 
-    <section class="section-block">
-      <h2 class="section-title">Today's Focus</h2>
-      <div class="focus-card">
-        <ul>
-          <li>Start with Admin Orders</li>
-          <li>Move new requests into the correct next step</li>
-          <li>Keep paid work moving</li>
-          <li>Close finished orders cleanly into customer records</li>
-        </ul>
+    <div class="status-grid">
+      <div class="status-box">
+        <div class="status-label">Last Device Built</div>
+        <div class="status-value" id="lastBuilt">Not set</div>
       </div>
-      <div class="change-note">
-        Update note: Version 2.1 improves the launch flow for daily use, adds Customer Records access, and reduces duplicate shortcut structure.
-      </div>
-    </section>
-  </main>
 
-  <footer class="site-footer">
-    <div>Internal Admin Page</div>
-    <span class="version">Version 2.1</span>
-  </footer>
+      <div class="status-box">
+        <div class="status-label">Next Check Needed</div>
+        <div class="status-value" id="nextCheck">Not set</div>
+      </div>
+
+      <div class="status-box">
+        <div class="status-label">Current Status</div>
+        <div id="statusPill" class="status-pill status-overdue">Not set</div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button id="markBuiltBtn" class="action-btn panel" style="border:none;cursor:pointer;">Built a Device Today</button>
+      <a href="app-library.html" class="action-btn customer" style="text-decoration:none;">Open App Library</a>
+      <a href="device-setup.html" class="action-btn customer" style="text-decoration:none;">Open Device Setup</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Customer Flow and Support</h2>
+    <div class="section-sub">
+      Use this section to move through the public-facing experience, validate the customer path, and keep support pages visible without leaving the admin environment.
+    </div>
+    <div class="customer-grid">
+      <a href="index.html" class="mini-btn customer">Homepage</a>
+      <a href="sell-sheet.html" class="mini-btn customer">Sell Sheet</a>
+      <a href="request-service.html" class="mini-btn customer">Request Service</a>
+      <a href="checkout.html" class="mini-btn customer">Checkout</a>
+      <a href="success.html" class="mini-btn customer">Success Page</a>
+      <a href="support.html" class="mini-btn customer">Support Page</a>
+      <a href="online-support.html" class="mini-btn customer">Online Support</a>
+      <a href="device-setup.html" class="mini-btn customer">Device Setup</a>
+      <a href="downloader-portal.html" class="mini-btn customer">Downloader Portal</a>
+      <a href="app-library.html" class="mini-btn customer">App Library</a>
+    </div>
+    <div class="section-note">
+      Keep this section visible so payment, setup, support, and customer testing do not become separate thought processes.
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h2>System Tools</h2>
+      <div class="section-sub">
+        Lower-frequency tools stay available here without competing with your daily operating clicks at the top of the page.
+      </div>
+      <div class="tool-grid">
+        <a href="admin-resource-center.html" class="mini-btn tool">Resource Center</a>
+        <a href="calls-dashboard.html" class="mini-btn tool">Calls Dashboard</a>
+        <a href="admin-apk-library.html" class="mini-btn tool">Admin APK Library</a>
+        <a href="admin-update-checker.html" class="mini-btn tool">System Updates</a>
+        <a href="https://docs.google.com/spreadsheets/d/1rQlVe8TGrnKTELc5_9hT2yrrQ_5G5KzKCh7h-A30A8o/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="mini-btn tool">Spreadsheet Tools</a>
+      </div>
+      <div class="section-note">
+        These stay on the dashboard for broad access, but they are intentionally separated from the top operating path.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Today’s Focus</h2>
+      <div class="section-sub">
+        Use this page as a real control point, not just a directory. The goal is broad visibility with a clearer operating order.
+      </div>
+      <ul class="priority-list">
+        <li>Start with Admin Orders and identify the next action for every active request.</li>
+        <li>Move qualified customers into the correct payment step using the Checkout Link Generator.</li>
+        <li>Use the TV Panel for service activation and the backup panel only when needed.</li>
+        <li>Keep paid work moving into the correct support, setup, or device path.</li>
+        <li>Close completed work into Customer Records so renewals and follow-up stay visible.</li>
+        <li>Review the customer journey pages when checking for support gaps or routing friction.</li>
+      </ul>
+      <div class="section-note" style="margin-top:14px;">
+        Version 2.2 expands the dashboard into a more complete command center, adds stronger payment-link access, improves customer-flow visibility, and removes duplicate shortcut clutter.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Version 2.2 | Last Updated: April 7, 2026 | Internal System Dashboard
+  </div>
+
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = "iptv_last_device_built";
+  const DAYS_ALLOWED = 30;
+  const WARNING_DAYS = 10;
+
+  const lastBuiltEl = document.getElementById("lastBuilt");
+  const nextCheckEl = document.getElementById("nextCheck");
+  const statusPillEl = document.getElementById("statusPill");
+  const markBuiltBtn = document.getElementById("markBuiltBtn");
+
+  function formatDate(date) {
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  }
+
+  function startOfToday() {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  function addDays(date, days) {
+    const copy = new Date(date);
+    copy.setDate(copy.getDate() + days);
+    return copy;
+  }
+
+  function diffInDays(fromDate, toDate) {
+    const msPerDay = 1000 * 60 * 60 * 24;
+    return Math.floor((toDate - fromDate) / msPerDay);
+  }
+
+  function loadStoredDate() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = new Date(raw);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function saveTodayAsBuilt() {
+    const today = startOfToday();
+    localStorage.setItem(STORAGE_KEY, today.toISOString());
+    render();
+  }
+
+  function render() {
+    const lastBuilt = loadStoredDate();
+
+    if (!lastBuilt) {
+      lastBuiltEl.textContent = "Not set";
+      nextCheckEl.textContent = "Set after first build";
+      statusPillEl.textContent = "No build logged";
+      statusPillEl.className = "status-pill status-overdue";
+      return;
+    }
+
+    const today = startOfToday();
+    const nextCheck = addDays(lastBuilt, DAYS_ALLOWED);
+    const daysRemaining = diffInDays(today, nextCheck);
+
+    lastBuiltEl.textContent = formatDate(lastBuilt);
+    nextCheckEl.textContent = formatDate(nextCheck);
+
+    if (daysRemaining > WARNING_DAYS) {
+      statusPillEl.textContent = "On Track • " + daysRemaining + " days remaining";
+      statusPillEl.className = "status-pill status-ok";
+    } else if (daysRemaining >= 0) {
+      if (daysRemaining === 0) {
+        statusPillEl.textContent = "Check apps today";
+      } else {
+        statusPillEl.textContent = "Due Soon • " + daysRemaining + " days remaining";
+      }
+      statusPillEl.className = "status-pill status-soon";
+    } else {
+      const overdueDays = Math.abs(daysRemaining);
+      statusPillEl.textContent = "Overdue • " + overdueDays + " day" + (overdueDays === 1 ? "" : "s");
+      statusPillEl.className = "status-pill status-overdue";
+    }
+  }
+
+  markBuiltBtn.addEventListener("click", saveTodayAsBuilt);
+  render();
+})();
+</script>
 </body>
 </html>
