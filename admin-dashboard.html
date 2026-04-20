@@ -4,7 +4,12 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>4MyIPTV Service Admin Dashboard</title>
-<!-- Version 2.4 update: Stretched System Tools into a full-width bottom section to match the primary section formatting and keep lower-frequency tools visible in a cleaner, more consistent layout. -->
+<!--
+Version 2.5 update:
+- Removed dashboard buttons that pointed to rebuild pages not yet present in this repo.
+- Kept only the links that currently resolve inside the rebuild or to active external tools.
+- Preserved the existing rebuild dashboard structure while reducing confusion and dead-end clicks.
+-->
 <style>
 :root{
   --bg:#08111f;
@@ -287,17 +292,11 @@ p{margin:0}
     <div class="info-grid">
       <div class="info-box">
         <h3>Message Templates</h3>
-        <p>Open messaging scripts when you need fast customer follow-up, payment messages, or renewal outreach.</p>
-        <div class="action-row">
-          <a href="admin-message-templates.html" class="action-btn admin" style="text-decoration:none;">Open Message Templates</a>
-        </div>
+        <p>This rebuild page has not been added yet. Add the dashboard button back after the dedicated rebuild page exists.</p>
       </div>
       <div class="info-box">
         <h3>Customer Records</h3>
-        <p>Use customer records to review status, track renewals, and confirm that completed work is stored in the right place.</p>
-        <div class="action-row">
-          <a href="admin-customers.html" class="action-btn admin" style="text-decoration:none;">Open Customer Records</a>
-        </div>
+        <p>This rebuild page has not been added yet. Add the dashboard button back after the dedicated rebuild page exists.</p>
       </div>
       <div class="info-box">
         <h3>Device Inventory</h3>
@@ -341,8 +340,6 @@ p{margin:0}
 
     <div class="action-row">
       <button id="markBuiltBtn" class="action-btn panel" style="border:none;cursor:pointer;">Built a Device Today</button>
-      <a href="app-library.html" class="action-btn customer" style="text-decoration:none;">Open App Library</a>
-      <a href="device-setup.html" class="action-btn customer" style="text-decoration:none;">Open Device Setup</a>
     </div>
   </div>
 
@@ -358,10 +355,6 @@ p{margin:0}
       <a href="checkout.html" class="mini-btn customer">Checkout</a>
       <a href="success.html" class="mini-btn customer">Success Page</a>
       <a href="support.html" class="mini-btn customer">Support Page</a>
-      <a href="online-support.html" class="mini-btn customer">Online Support</a>
-      <a href="device-setup.html" class="mini-btn customer">Device Setup</a>
-      <a href="downloader-portal.html" class="mini-btn customer">Downloader Portal</a>
-      <a href="app-library.html" class="mini-btn customer">App Library</a>
     </div>
     <div class="section-note">
       Keep this section visible so payment, setup, support, and customer testing do not become separate thought processes.
@@ -374,10 +367,7 @@ p{margin:0}
         Lower-frequency tools stay available here without competing with your daily operating clicks at the top of the page.
       </div>
       <div class="tool-grid">
-        <a href="admin-resource-center.html" class="mini-btn tool">Resource Center</a>
-        <a href="calls-dashboard.html" class="mini-btn tool">Calls Dashboard</a>
         <a href="admin-apk-library.html" class="mini-btn tool">Admin APK Library</a>
-        <a href="admin-update-checker.html" class="mini-btn tool">System Updates</a>
         <a href="https://docs.google.com/spreadsheets/d/1rQlVe8TGrnKTELc5_9hT2yrrQ_5G5KzKCh7h-A30A8o/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="mini-btn tool">Spreadsheet Tools</a>
       </div>
       <div class="section-note">
@@ -386,9 +376,9 @@ p{margin:0}
   </div>
 
   <div class="footer">
-    Version 2.4 | Last Updated: April 7, 2026 | Internal System Dashboard
+    Version 2.5 | Last Updated: April 20, 2026 | Internal System Dashboard
   </div>
-  <!-- Version 2.4: Stretched System Tools across the bottom as a full-width final section to match the formatting of the sections above it. -->
+  <!-- Version 2.5: Removed buttons that pointed to rebuild pages not yet created so the dashboard only shows live rebuild paths and active tools. -->
 
 </div>
 
